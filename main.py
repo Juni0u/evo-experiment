@@ -1,12 +1,13 @@
 import pygame, uuid, random, time
 from creature import Creature
 from food import FoodSpawner, Food
+from global_vars import RESOLUTION
 
 seed = int(time.time() * 777)
 
 pygame.init() 
 
-resolution = (128,128)
+resolution = RESOLUTION
 screen_size = (640,640)
 
 # CREATING CANVAS 
@@ -19,53 +20,64 @@ exit = False
 
 class Game():
     def __init__(self,canvas):
+        self.year = 0
         self.seed = seed
         random.seed(self.seed)
         self.canvas = canvas
-        self.Agents = []
-        self.FoodSpawners = []
-        self.Foods = []
-        self.add_agent(64,64,(255,0,0),0,"01010001010101010101010")
-        self.add_agent(64,34,(255,255,0),0,"01010001010101010101010")
-        self.add_agent(64,94,(255,0,255),0,"01010001010101010101010")
-        self.add_agent(34,64,(125,125,125),0,"01010001010101010101010")
-        self.add_agent(94,64,(0,0,255),0,"01010001010101010101010")
-        self.add_food_spawner(x=50,y=50,capacity=100,spawn_radius=15,food_max_energy=10,food_spawn_chance=0.1)
-        #self.create_agent_population(20)
+        self.AgentList = []
+        self.FoodSpawnerList = []
+        self.FoodList = []
+        #self.add_agent(64,34,(255,255,0),0,"01010001010101010101010")
+        #self.add_agent(64,94,(255,0,255),0,"01010001010101010101010")
+        #self.add_agent(34,64,(125,125,125),0,"01010001010101010101010")
+        #self.add_agent(94,64,(0,0,255),0,"01010001010101010101010")
+        
+        # #top-left
+        self.add_food_spawner(x=25,y=25,capacity=100,spawn_radius=25,food_max_energy=10,food_spawn_chance=0.01,rest_time=50)
+        # #top-right
+        self.add_food_spawner(x=128-25,y=25,capacity=100,spawn_radius=25,food_max_energy=10,food_spawn_chance=0.02,rest_time=50)
+        # #botton-left
+        self.add_food_spawner(x=25,y=128-25,capacity=100,spawn_radius=25,food_max_energy=10,food_spawn_chance=0.03,rest_time=50)
+        # #botton-right
+        self.add_food_spawner(x=128-25,y=128-25,capacity=100,spawn_radius=25,food_max_energy=10,food_spawn_chance=0.04,rest_time=50)
+        # #middle
+        self.add_food_spawner(x=63,y=63,capacity=100,spawn_radius=25,food_max_energy=10,food_spawn_chance=0.05,rest_time=50)
 
     def update(self):
-        print(len(self.Foods))
-        for agent in self.Agents:
-            agent.update(seed=self.seed)
-
-        for foodspawner in self.FoodSpawners:
-            self.Foods = foodspawner.update(self.Foods, self.canvas)
-            if foodspawner.capacity < 1:
-                self.FoodSpawners.remove(foodspawner)
+        self.year += 1
+        random.shuffle(self.AgentList)
+        if self.year == 1000: self.create_agent_population(20)
+            
+        for agent in self.AgentList:          
+            self.FoodList, self.AgentList = agent.update(seed=self.seed,FoodList=self.FoodList, AgentList=self.AgentList)            
+            #print(agent.stamina)
+            
+        for foodspawner in self.FoodSpawnerList:
+            self.FoodList = foodspawner.update(self.FoodList, self.canvas)
+            # if foodspawner.capacity < 1:
+            #     self.FoodSpawnerList.remove(foodspawner)
 
     def draw(self):
-        for food in self.Foods:
-            food.draw(canvas)
-
-        for foodspawner in self.FoodSpawners:
+        for foodspawner in self.FoodSpawnerList:
             foodspawner.draw(canvas)
-
-        for agent in self.Agents:
-            agent.draw(canvas)
-
-        pygame.draw.rect(self.canvas,(255,255,255),(5,5,1,1))
         
+        for agent in self.AgentList:
+            agent.draw(canvas)
+            
+        for food in self.FoodList:
+            food.draw(canvas)
+            
     def add_agent(self,x:int,y:int,color:tuple,born_in:int,chromosome:str):
         id = uuid.uuid4()
-        self.Agents.append(Creature(id,x,y,color,born_in,chromosome))
+        self.AgentList.append(Creature(id,x,y,color,born_in,chromosome))
 
-    def add_food_spawner(self,x:int,y:int,capacity:int,spawn_radius:int,food_max_energy:int,food_spawn_chance:float):
-        self.FoodSpawners.append(FoodSpawner(x,y,capacity,spawn_radius,food_max_energy, food_spawn_chance))
+    def add_food_spawner(self,x:int,y:int,capacity:int,spawn_radius:int,food_max_energy:int,food_spawn_chance:float,rest_time:int):
+        self.FoodSpawnerList.append(FoodSpawner(x,y,capacity,spawn_radius,food_max_energy, food_spawn_chance,rest_time))
 
     def create_agent_population(self,quantity):
         for i in range(quantity):
             chromosome = ""
-            for _ in range(23): #chromosome lenght
+            for _ in range(17): #chromosome lenght
                 chromosome += str(random.choice([0,1]))
 
             self.add_agent(
