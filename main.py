@@ -26,36 +26,28 @@ class Game():
         self.canvas = canvas
         self.AgentList = []
         self.FoodSpawnerList = []
-        self.FoodList = []
-        #self.add_agent(64,34,(255,255,0),0,"01010001010101010101010")
-        #self.add_agent(64,94,(255,0,255),0,"01010001010101010101010")
-        #self.add_agent(34,64,(125,125,125),0,"01010001010101010101010")
-        #self.add_agent(94,64,(0,0,255),0,"01010001010101010101010")
-        
+        self.FoodList = []        
         # #top-left
-        self.add_food_spawner(x=25,y=25,capacity=100,spawn_radius=25,food_max_energy=10,food_spawn_chance=0.01,rest_time=50)
+        self.add_food_spawner(x=25,y=25,capacity=100,spawn_radius=25,food_max_energy=5,food_spawn_chance=0.01,rest_time=50)
         # #top-right
-        self.add_food_spawner(x=128-25,y=25,capacity=100,spawn_radius=25,food_max_energy=10,food_spawn_chance=0.02,rest_time=50)
+        self.add_food_spawner(x=128-25,y=25,capacity=100,spawn_radius=25,food_max_energy=5,food_spawn_chance=0.02,rest_time=50)
         # #botton-left
-        self.add_food_spawner(x=25,y=128-25,capacity=100,spawn_radius=25,food_max_energy=10,food_spawn_chance=0.03,rest_time=50)
+        self.add_food_spawner(x=25,y=128-25,capacity=100,spawn_radius=25,food_max_energy=5,food_spawn_chance=0.03,rest_time=50)
         # #botton-right
-        self.add_food_spawner(x=128-25,y=128-25,capacity=100,spawn_radius=25,food_max_energy=10,food_spawn_chance=0.04,rest_time=50)
+        self.add_food_spawner(x=128-25,y=128-25,capacity=100,spawn_radius=25,food_max_energy=5,food_spawn_chance=0.04,rest_time=50)
         # #middle
-        self.add_food_spawner(x=63,y=63,capacity=100,spawn_radius=25,food_max_energy=10,food_spawn_chance=0.05,rest_time=50)
+        self.add_food_spawner(x=63,y=63,capacity=100,spawn_radius=25,food_max_energy=5,food_spawn_chance=0.05,rest_time=50)
 
     def update(self):
         self.year += 1
         random.shuffle(self.AgentList)
-        if self.year == 1000: self.create_agent_population(20)
+        if self.year == 1000: self.create_agent_population(15)
             
         for agent in self.AgentList:          
-            self.FoodList, self.AgentList = agent.update(seed=self.seed,FoodList=self.FoodList, AgentList=self.AgentList)            
-            #print(agent.stamina)
+            self.FoodList, self.AgentList = agent.update(year=self.year,seed=self.seed,FoodList=self.FoodList, AgentList=self.AgentList)            
             
         for foodspawner in self.FoodSpawnerList:
             self.FoodList = foodspawner.update(self.FoodList, self.canvas)
-            # if foodspawner.capacity < 1:
-            #     self.FoodSpawnerList.remove(foodspawner)
 
     def draw(self):
         for foodspawner in self.FoodSpawnerList:
@@ -84,7 +76,7 @@ class Game():
                 x=random.randint(0,127),
                 y=random.randint(0,127),
                 color=(255,0,0),
-                born_in=0,
+                born_in=self.year,
                 chromosome=chromosome
                 )
 

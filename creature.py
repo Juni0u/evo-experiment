@@ -1,5 +1,5 @@
-import pygame, math, random
-from global_vars import FOOD_STANDARD_COLOR, RESOLUTION
+import pygame, math, random, uuid
+from global_vars import FOOD_STANDARD_COLOR, RESOLUTION, MUTATION_RATE
 
 class Creature():
     def __init__(self,id,x:int,y:int,color:tuple,born_in:int,chromosome:str):
@@ -11,7 +11,6 @@ class Creature():
         self.x = x
         self.y = y
         self.color = color
-        self.age = 0
         self.born_in = born_in
         self.stamina = 0
         self.vision_radius=1
@@ -31,9 +30,8 @@ class Creature():
         self.stamina = self.max_stamina
         self.vision_rect = pygame.Rect(self.x-self.vision_radius,self.y-self.vision_radius,2*self.vision_radius,2*self.vision_radius)
 
-    def update(self,FoodList,AgentList,seed):
-        if self.age==0: self.birth()
-        self.age += 1
+    def update(self,year,FoodList,AgentList,seed):
+        if self.born_in-year==0: self.birth()
         self.stamina -= 0.05
         
         if self.stamina <= 0:
@@ -52,20 +50,20 @@ class Creature():
             self.search()
             self.state="idle"         
         elif self.state=="reproducing":
-            self.reproduce(AgentList,index)
+            self.reproduce(year, AgentList,index)
             self.state="idle"
         return FoodList, AgentList
 
     def draw(self,canvas) -> None:
         try: pygame.draw.rect(canvas,(255,255,255),self.vision_rect)
         except AttributeError:
-            print(self.age)
             print(self.chromosome)
             print(self.vision_radius)
             
         canvas.set_at((int(self.x),int(self.y)), self.color)  
 
     def collision(self,FoodList,AgentList):
+
         index = self.rect.collidelist(FoodList)
         if index != -1: 
             self.state = "eating"
@@ -77,19 +75,51 @@ class Creature():
             self.hunt_target = FoodList[index]
             return index    
         
+        AgentList.remove(self)
         index = self.rect.collidelist(AgentList)
-        if (index != 1) and (self.stamina > self.reprodution_thresold/2) and (AgentList[index].stamina > AgentList[index].reprodution_thresold/2):
+        if (index != -1) and (self.stamina > self.reprodution_thresold/2) and (AgentList[index].stamina > AgentList[index].reprodution_thresold/2):
             self.state = "reproducing"
+            self.move(direction=[])#TODO: os agentes tao ficando presos no estado de reproducing ai ficam assim ate morrer
+            AgentList.append(self)
             return index
         
+        AgentList.append(self)
         self.state="searching"
         return None
     
-    def reproduce(self,AgentList, index):
-        self.stamina -= self.reprodution_thresold/2
-        AgentList[index].stamina -= AgentList[index].reprodution_thresold/2
+    def reproduce(self,year,AgentList,index):
+        print(f"{year},reproducing")
+    #     self.stamina -= self.reprodution_thresold/2
+    #     AgentList[index].stamina -= AgentList[index].reprodution_thresold/2
+    #     self.crossover(age=year,partner=AgentList[index],AgentList=AgentList)
+
+    # def mutate(self,chromosome):
+    #     if random.random() <= MUTATION_RATE:
+    #         chromosome = list(chromosome)
+    #         index = random.randint(1,len(chromosome)-1)
+    #         if chromosome[index]=="0": chromosome[index]="1"
+    #         else: chromosome[index]="0"
+    #         chromosome = "".join(chromosome)
+    #     return chromosome
+
+    # def crossover(self,age,partner,AgentList):
+    #     cut = random.randint(1,len(self.chromosome)-2)
+    #     child1 = ""
+    #     child2 = ""
+    #     for i in range(0,cut,1):
+    #         child1 += self.chromosome[i]
+    #         child2 += partner.chromosome[i]
+    #     for i in range(cut,len(self.chromosome),1):
+    #         child1 += partner.chromosome[i]
+    #         child2 += self.chromosome[i]
+
+    #     child1 = self.mutate(child1)
+    #     child2 = self.mutate(child2)
+
+    #     AgentList.append(Creature(id=uuid.uuid4(),x=random.randint(self.x-1,self.x+1),y=random.randint(self.y-1,self.y+1),color=(255,0,0),born_in=age,chromosome=child1))
+    #     AgentList.append(Creature(id=uuid.uuid4(),x=random.randint(self.x-1,self.x+1),y=random.randint(self.y-1,self.y+1),color=(255,0,0),born_in=age,chromosome=child2))
+    #     return AgentList
         
-       
     def eat(self, FoodList, index):    
         self.stamina += FoodList[index].energy
         del FoodList[index]
