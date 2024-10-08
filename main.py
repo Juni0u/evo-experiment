@@ -30,15 +30,16 @@ class Game():
         self.add_agent(64,94,(255,0,255),0,"01010001010101010101010")
         self.add_agent(34,64,(125,125,125),0,"01010001010101010101010")
         self.add_agent(94,64,(0,0,255),0,"01010001010101010101010")
-        self.add_food_spawner(x=50,y=50,capacity=10,spawn_radius=15,food_max_energy=10,food_spawn_chance=0.2)
+        self.add_food_spawner(x=50,y=50,capacity=100,spawn_radius=15,food_max_energy=10,food_spawn_chance=0.1)
         #self.create_agent_population(20)
 
     def update(self):
+        print(len(self.Foods))
         for agent in self.Agents:
             agent.update(seed=self.seed)
 
         for foodspawner in self.FoodSpawners:
-            self.Foods = foodspawner.update(self.Foods)
+            self.Foods = foodspawner.update(self.Foods, self.canvas)
             if foodspawner.capacity < 1:
                 self.FoodSpawners.remove(foodspawner)
 
@@ -51,6 +52,8 @@ class Game():
 
         for agent in self.Agents:
             agent.draw(canvas)
+
+        pygame.draw.rect(self.canvas,(255,255,255),(5,5,1,1))
         
     def add_agent(self,x:int,y:int,color:tuple,born_in:int,chromosome:str):
         id = uuid.uuid4()

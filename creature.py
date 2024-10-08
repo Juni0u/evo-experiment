@@ -1,4 +1,5 @@
 import pygame, math, random
+from global_vars import FOOD_STANDARD_COLOR
 
 class Creature():
     def __init__(self,id,x:int,y:int,color:tuple,born_in:int,chromosome:str):
@@ -13,6 +14,7 @@ class Creature():
         self.age = 0
         self.born_in = born_in
         self.stamina = 0
+        self.body = pygame.Rect(x,y,1,1)
         self.chromosome = chromosome
         if len(chromosome) != 23: raise ValueError("Chromosome does not have the right size.")
 
@@ -24,15 +26,23 @@ class Creature():
         self.reprodution_thresold = int(self.chromosome[19:23],2)
         self.stamina = self.max_stamina
 
-    def update(self,seed) -> None:
+    def update(self,FoodList,AgentList,seed) -> None:
         if self.age==0: self.birth()
         if random.random() > self.chance_to_act:
             self.move(direction=[random.randint(-1,1),random.randint(-1,1)])
-            print(f"{self.id} moved to {self.x}")
-            print(f"   speed={self.speed}")
+
+
 
     def draw(self,canvas) -> None:
         canvas.set_at((int(self.x),int(self.y)), self.color)  
+
+    def eat(self):
+        pass
+
+    def is_pixel_food(self,canvas,pos):
+        pixel_color = canvas.get_at(pos)
+        if pixel_color==FOOD_STANDARD_COLOR: return True
+        else: return False
 
     def direction_with_point(self,target:list) -> list:
         """Returns an unitary vector [x,y] that points to the target [x,y]"""
@@ -48,4 +58,5 @@ class Creature():
         if self.stamina > 1:
             self.x += direction[0] * self.speed
             self.y += direction[1] * self.speed
+            self.body.topleft = (self.x,self.y)
             self.stamina -= 1
