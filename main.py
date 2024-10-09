@@ -28,15 +28,15 @@ class Game():
         self.FoodSpawnerList = []
         self.FoodList = []        
         # #top-left
-        self.add_food_spawner(x=25,y=25,capacity=100,spawn_radius=25,food_max_energy=5,food_spawn_chance=0.01,rest_time=50)
+        self.add_food_spawner(x=25,y=25,capacity=200,spawn_radius=15,food_max_energy=5,food_spawn_chance=0.5,rest_time=5)
         # #top-right
-        self.add_food_spawner(x=128-25,y=25,capacity=100,spawn_radius=25,food_max_energy=5,food_spawn_chance=0.02,rest_time=50)
+        self.add_food_spawner(x=128-25,y=25,capacity=150,spawn_radius=15,food_max_energy=5,food_spawn_chance=0.5,rest_time=5)
         # #botton-left
-        self.add_food_spawner(x=25,y=128-25,capacity=100,spawn_radius=25,food_max_energy=5,food_spawn_chance=0.03,rest_time=50)
+        self.add_food_spawner(x=25,y=128-25,capacity=100,spawn_radius=15,food_max_energy=5,food_spawn_chance=0.5,rest_time=5)
         # #botton-right
-        self.add_food_spawner(x=128-25,y=128-25,capacity=100,spawn_radius=25,food_max_energy=5,food_spawn_chance=0.04,rest_time=50)
+        self.add_food_spawner(x=128-25,y=128-25,capacity=100,spawn_radius=15,food_max_energy=5,food_spawn_chance=0.5,rest_time=5)
         # #middle
-        self.add_food_spawner(x=63,y=63,capacity=100,spawn_radius=25,food_max_energy=5,food_spawn_chance=0.05,rest_time=50)
+        self.add_food_spawner(x=63,y=63,capacity=500,spawn_radius=100,food_max_energy=5,food_spawn_chance=0.5,rest_time=5)
 
     def update(self):
         self.year += 1
@@ -48,6 +48,9 @@ class Game():
             
         for foodspawner in self.FoodSpawnerList:
             self.FoodList = foodspawner.update(self.FoodList, self.canvas)
+        
+        if len(self.AgentList) > 0:
+            print(f"Number of agents: {len(self.AgentList)}")
 
     def draw(self):
         for foodspawner in self.FoodSpawnerList:
