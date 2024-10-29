@@ -22,6 +22,15 @@ class Creature():
         if len(chromosome) != 17: raise ValueError("Chromosome does not have the right size.")
         self.birth()
 
+    def __str__(self) -> str:
+        output = f"Creature {self.id}\n"
+        output += f"----- Born in: {self.born_in}\n"
+        output += f"----- Max Stamina: {self.max_stamina}\n"
+        output += f"----- Max Steps: {self.max_steps}\n"
+        output += f"----- Vision Radius: {self.vision_radius}\n"
+        output += f"----- Reproduction thresold: {self.reprodution_thresold}\n"
+        return output
+
     def birth(self) -> None:
         self.max_stamina = 50#int(self.chromosome[0:5],2)
         self.max_steps = int(self.chromosome[5:9],2)-1/10000
@@ -150,7 +159,7 @@ class Creature():
             self.rect.topleft = (self.x,self.y)
             self.vision_rect.topleft = (self.x-self.vision_radius,self.y-self.vision_radius)
             self.env_limits()
-            self.stamina -= 1
+            self.stamina -= 1*steps/2
             
     def env_limits(self) -> None:
         if self.x > RESOLUTION[0]:
