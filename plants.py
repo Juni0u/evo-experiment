@@ -1,47 +1,20 @@
 import pygame, random
 from markov_chain import MarkovChain
 from typing import Optional
-from global_vars import PLANT_COLOR, PLANT_SPAWN_RADIUS, FOOD_STANDARD_COLOR, RESOLUTION, SUN_ENERGY, FOOD_SPROUT_CHANCE
+from global_vars import PLANTS_COLOR,PLANT_MAX_HEALTH_DIVISIONS, PLANT_BASE_COLOR, PLANT_SPAWN_RADIUS, FOOD_STANDARD_COLOR, RESOLUTION, SUN_ENERGY, FOOD_SPROUT_CHANCE
 #TODO: As frutas que evoluem para plantas n:ao tem o thresold de energia porque nunca passando por create states with health
 
 class Plant():
-    def __init__(self,x:int,y:int,gene:list=[0], states=[0], brain=[0]) -> None:
+    def __init__(self,x:int,y:int, gene=[0])-> None: #health_divisions:int=0, states=[0], brain=[0]) -> None:
         self.x = x
         self.y = y
-        self.color = PLANT_COLOR      
+        self.color = PLANT_BASE_COLOR      
         self.spawn_radius = PLANT_SPAWN_RADIUS
         self.age = 0
         self.state = "idle0" 
-
-        if len(gene)==1: self.gene = self.generate_random_gene()
-        else: self.gene = gene
-
+        self.gene = gene
         self.translation(self.gene)
-        self.energy = self.energy_capacity
-
-        if len(states)==1: 
-            self.states = ["idle","eat","reproduce"]
-            self.create_states_with_health(self.health_divisions)
-        else: self.states = states
         
-        if not isinstance(brain, MarkovChain): 
-            self.brain = MarkovChain(states_list=self.states, probability_matrix=brain)
-        else: self.brain = brain
-
-    def translation(self, gene):
-        # 0 , 1, 2, 3| 4, 5, 6, 7| 8, 9|10,11,12,13|14
-        #[50,50,50,50|25,25,25,25|15,15| 5, 5, 5, 5|5]
-        #0-3 = energy capacity
-        #4-7 = food_spawn_thresold
-        #8-9 = food_spawn_chance
-        #10-13 = metabolism
-        #14 = health divisions
-        self.energy_capacity = sum(gene[0:4])
-        self.metabolism = sum(gene[10:14]) + self.energy_capacity * 0.03
-        self.food_spawn_thresold = sum(gene[4:8]) - self.metabolism * 0.5
-        self.food_spawn_chance = sum(gene[8:10])/100 + self.metabolism/100 * 0.5
-        self.health_divisions = int(gene[14] + self.metabolism * 0.15)
-
     def draw(self, canvas) -> None:
         canvas.set_at((int(self.x),int(self.y)), self.color) 
         for ix in range(-1,2):
@@ -49,6 +22,7 @@ class Plant():
                 canvas.set_at((int(self.x+ix),int(self.y+iy)), self.color) 
 
     def update(self,Plants,Fruits,canvas):
+        self.age += 1
         self.metabolize()
         self.update_state_based_on_energy()
         if (self.energy <= 0):
@@ -61,33 +35,52 @@ class Plant():
             if F: Fruits.append(F)
         self.state_transition()
         return Plants, Fruits
+
+    def translation(self, gene):
+        ##[self.energy_capacity,self.metabolism,self.food_spawn_thresold,self.food_spawn_chance,self.health_divisions,self.states,self.brain]
+        ##[         0          ,         1     ,           2            ,         3            ,          4          ,     5     ,     6    ] 
+        #self.translation(self.gene)
+        if len(gene) == 1: gene = [100,5,50,0.4,random.randint(1,PLANT_MAX_HEALTH_DIVISIONS),[0],[0]]
     
-    def generate_random_gene(self):
-        # 0 , 1, 2, 3| 4, 5, 6, 7| 8, 9|10,11,12,13|14
-        #[50,50,50,50|25,25,25,25|15,15| 5, 5, 5, 5|5]
-        #0-3 = energy capacity
-        #4-7 = food_spawn_thresold
-        #8-9 = food_spawn_chance
-        #10-13 = metabolism
-        #14 = health divisions
-        gene=[]
-        #energy capacity
-        for i in range(0,4):
-            gene.append(random.randint(1,50))
-        #food_spawn_thresold
-        for i in range(0,4):
-            gene.append(random.randint(1,25))
-        #food_spawn_chance
-        for i in range(0,2):
-            gene.append(random.randint(1,15))
-        #metabolism + health divisions
-        for i in range(0,5):
-            gene.append(random.randint(1,5))
-        #print(gene)
-        return gene
-    
+        self.energy_capacity = gene[0]
+        self.metabolism = gene[1]
+        self.food_spawn_thresold = gene[2]
+        self.food_spawn_chance = gene[3]
+        self.health_divisions = gene[4]
+        self.states = gene[5]
+        self.brain = gene[6]
+        self.energy = self.energy_capacity
+
+        if len(self.states)==1: 
+            self.states = ["idle","eat","reproduce"]
+            self.create_states_with_health(self.health_divisions)
+        else: 
+            self.get_health_state_division(self.health_divisions)
+
+        if not isinstance(self.brain, MarkovChain): 
+            self.brain = MarkovChain(states_list=self.states)
+        else: 
+            self.brain = self.brain   
+            self.brain.mutate_matrix() 
+
+        self.gene = [self.energy_capacity,self.metabolism,self.food_spawn_thresold,self.food_spawn_chance,self.health_divisions,self.states,self.brain]        
+        self.color_based_states()
+
+    def color_based_states(self):
+        #category_unit = (255 - PLANT_BASE_COLOR[1])/(PLANT_MAX_HEALTH_DIVISIONS*3)
+        self.color = PLANTS_COLOR[self.health_divisions-1]
+
     def state_transition(self):
         self.state = self.brain.state_transition(current_state=self.state)
+
+    def get_health_state_division(self, number_of_divisions) -> None:
+        self.enegy_state_thresold = []
+        unit_value = self.energy_capacity/number_of_divisions
+        sum_thresold = 0
+
+        for i in range(0,number_of_divisions):
+            self.enegy_state_thresold.append(unit_value+sum_thresold)
+            sum_thresold += unit_value
 
     def create_states_with_health(self, number_of_divisions:int) -> None:
         """Crete states based on % energy the plant has and combine with existing states"""
@@ -115,7 +108,6 @@ class Plant():
 
     def metabolize(self) -> None:
         self.energy -= self.metabolism
-        self.age += 1
     
     def spawnFood(self,canvas) -> Optional["Fruit"]:
         pos=[self.x+random.randint(-self.spawn_radius,self.spawn_radius),self.y+random.randint(-self.spawn_radius,self.spawn_radius)]
@@ -125,8 +117,8 @@ class Plant():
         elif pos[1] < 0: pos[1] = 0
         
         if (self.energy > self.food_spawn_thresold) and (random.random() <= self.food_spawn_chance) and not (self.is_pixel_food(canvas,pos)):
-            F = Fruit(x=pos[0],y=pos[1],gene=self.gene,states=self.states, brain=self.brain) 
-            self.energy -= self.food_spawn_thresold*0.8
+            F = Fruit(x=pos[0],y=pos[1],gene=self.gene) 
+            self.energy -= self.food_spawn_thresold
             return F
         return None
     
@@ -136,42 +128,27 @@ class Plant():
         else: return False
 
 class Fruit():
-    def __init__(self,x:int,y:int,gene:list, states:list, brain:"MarkovChain") -> None:
+    def __init__(self,x:int,y:int,gene:list) -> None:
         self.x = x
         self.y = y
         self.color = FOOD_STANDARD_COLOR
         self.sprout_chance = FOOD_SPROUT_CHANCE
-        self.gene = gene
-        self.states = states
-        self.brain = brain
-        self.brain.mutate_matrix()
-        self.translation(gene)
+        self.gene = gene 
+        ##[self.energy_capacity,self.metabolism,self.food_spawn_thresold,self.food_spawn_chance,self.health_divisions,self.states,self.brain]
+        ##[         0          ,         1     ,           2            ,         3            ,          4          ,     5     ,     6    ] 
+        self.energy = self.gene[2]
         self.rect = pygame.Rect(x,y,1,1)        
-
-    def translation(self, gene):
-        # 0 , 1, 2, 3| 4, 5, 6, 7| 8, 9|10,11,12,13|14
-        #[50,50,50,50|25,25,25,25|15,15| 5, 5, 5, 5|5]
-        #0-3 = energy capacity
-        #4-7 = food_spawn_thresold
-        #8-9 = food_spawn_chance
-        #10-13 = metabolism
-        #14 = health divisions
-        self.energy_capacity = sum(gene[0:4])
-        self.metabolism = sum(gene[10:14]) + self.energy_capacity * 0.03
-        self.food_spawn_thresold = sum(gene[4:8]) - self.metabolism * 0.5
-        self.food_spawn_chance = sum(gene[8:10])/100 + self.metabolism/100 * 0.5
-        self.health_divisions = int(gene[14] + self.metabolism * 0.15)
-        self.energy = self.energy_capacity
 
     def draw(self, canvas) -> None:
         canvas.set_at((int(self.x),int(self.y)), self.color) 
 
     def update(self, Plants, Fruits):
         if self.energy <= 0:
-            self.die(Fruits)
+            Fruits = self.die(Fruits)
+            return Plants, Fruits
         self.energy -= 1
         if random.random() < self.sprout_chance:
-            self.sprout(Plants, Fruits)
+            Plants, Fruits = self.sprout(Plants, Fruits)
         return Plants, Fruits
 
     def die(self, Fruits):
@@ -180,9 +157,10 @@ class Fruit():
 
     def sprout(self, Plants, Fruits):
         if self in Fruits:
-            Plants.append(Plant(x=self.x, y=self.y, gene=self.gene, states=self.states, brain=self.brain))
+            Plants.append(Plant(x=self.x, y=self.y, gene=self.gene))
             Fruits.remove(self)
             return Plants, Fruits
+        return Plants, Fruits
 
 A = Plant(70,70)
 
