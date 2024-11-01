@@ -1,7 +1,7 @@
 import pygame, random
 from markov_chain import MarkovChain
 from typing import Optional
-from global_vars import PLANTS_COLOR,PLANT_MAX_HEALTH_DIVISIONS, PLANT_BASE_COLOR, PLANT_SPAWN_RADIUS, FOOD_STANDARD_COLOR, RESOLUTION, SUN_ENERGY, FOOD_SPROUT_CHANCE
+from global_vars import MAX_DEATH_PROB,AGE_MAX_DEATH_PROB,PLANTS_COLOR,PLANT_MAX_HEALTH_DIVISIONS, PLANT_BASE_COLOR, PLANT_SPAWN_RADIUS, FOOD_STANDARD_COLOR, RESOLUTION, SUN_ENERGY, FOOD_SPROUT_CHANCE
 #TODO: As frutas que evoluem para plantas n:ao tem o thresold de energia porque nunca passando por create states with health
 
 class Plant():
@@ -11,8 +11,10 @@ class Plant():
         self.color = PLANT_BASE_COLOR      
         self.spawn_radius = PLANT_SPAWN_RADIUS
         self.age = 0
+        self.death_prob = 0
         self.state = "idle0" 
         self.gene = gene
+        self.rect = pygame.Rect(self.x-1,self.y-1,2,2)
         self.translation(self.gene)
         
     def draw(self, canvas) -> None:
@@ -21,15 +23,16 @@ class Plant():
             for iy in range(-1,2):
                 canvas.set_at((int(self.x+ix),int(self.y+iy)), self.color) 
 
-    def update(self,Plants,Fruits,canvas):
+    def update(self,Environment,Plants,Fruits,canvas):
         self.age += 1
+        self.update_death_prob()
         self.metabolize()
         self.update_state_based_on_energy()
-        if (self.energy <= 0):
+        if (self.energy <= 0) or (random.random() < self.death_prob):
             Plants.remove(self)
             return Plants, Fruits
         if "eat" in self.state:
-            self.eat()
+            self.eat(Environment)
         elif "reproduce" in self.state:
             F = self.spawnFood(canvas)
             if F: Fruits.append(F)
@@ -65,6 +68,10 @@ class Plant():
 
         self.gene = [self.energy_capacity,self.metabolism,self.food_spawn_thresold,self.food_spawn_chance,self.health_divisions,self.states,self.brain]        
         self.color_based_states()
+
+    def update_death_prob(self):
+        unit_increment = (MAX_DEATH_PROB/100)/AGE_MAX_DEATH_PROB
+        self.death_prob += unit_increment/100
 
     def color_based_states(self):
         #category_unit = (255 - PLANT_BASE_COLOR[1])/(PLANT_MAX_HEALTH_DIVISIONS*3)
@@ -103,8 +110,8 @@ class Plant():
                 self.state = self.state[:-1]+str(i)
                 break         
 
-    def eat(self, energy: float=SUN_ENERGY) -> None:
-        self.energy += energy
+    def eat(self, environment) -> None:
+        self.energy += environment.energy_given(self.rect)
 
     def metabolize(self) -> None:
         self.energy -= self.metabolism

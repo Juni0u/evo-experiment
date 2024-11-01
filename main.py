@@ -1,7 +1,8 @@
 import pygame, uuid, random, time
 from creature import Creature
 from plants import Plant, Fruit
-from global_vars import RESOLUTION
+from environment import Environment, Region
+from global_vars import RESOLUTION, SUN_ENERGY
 from tqdm import tqdm
 import statistics, datetime, os, numpy, imageio
 import cProfile
@@ -9,6 +10,7 @@ import cProfile
 seed = int(time.time() * 777)
 
 pygame.init() 
+pygame.font.init()
 
 resolution = RESOLUTION
 screen_size = (640,640)
@@ -29,32 +31,42 @@ class Game():
         self.seed = seed
         random.seed(self.seed)
         self.canvas = canvas
+
+        self.env = Environment()
+        self.env.create_new_region(0,0,int(RESOLUTION[0]/2),int(RESOLUTION[1]/2), SUN_ENERGY*1.25)
+        self.env.create_new_region(int(RESOLUTION[0]/2),0,int(RESOLUTION[0]/2),int(RESOLUTION[1]/2), SUN_ENERGY*0.5)
+        self.env.create_new_region(int(RESOLUTION[0]/2),int(RESOLUTION[1]/2),int(RESOLUTION[0]/2),int(RESOLUTION[1]/2), SUN_ENERGY*0.25)
+
         self.AgentList = []
         self.PlantsList = []
         self.FruitList = []        
-        
         self.create_plant_population(50)
 
     def update(self):
         self.year += 1
         random.shuffle(self.AgentList)
         random.shuffle(self.PlantsList)
-        if (self.year%10==0):
-            self.create_plant_population(1)
+        #if (self.year%10==0):
+        if len(self.PlantsList) < 10:
+             self.create_plant_population(3)
 
         for plant in self.PlantsList:
-            self.PlantsList, self.FruitList = plant.update(self.PlantsList,self.FruitList, self.canvas)
+            self.PlantsList, self.FruitList = plant.update(self.env, self.PlantsList,self.FruitList, self.canvas)
         
         for fruit in self.FruitList:
             self.PlantsList, self.FruitList = fruit.update(self.PlantsList, self.FruitList)
 
-    def draw(self):
-        for plant in self.PlantsList:
-            plant.draw(canvas)
-            
+    def draw(self):            
         for fruit in self.FruitList:
             fruit.draw(canvas)
-            
+
+        for plant in self.PlantsList:
+            plant.draw(canvas)
+
+        font = pygame.font.Font(None,16)
+        year_text = font.render(f"{self.year}",True, (255,0,255))
+        canvas.blit(year_text,(5,5))
+
     def add_agent(self,x:int,y:int,color:tuple,born_in:int,chromosome:str):
         id = uuid.uuid4()
         self.AgentList.append(Creature(id,x,y,color,born_in,chromosome))
@@ -82,13 +94,14 @@ class Game():
 
     def print_plant_data(self, experiment_folder):
         file_name = f"{experiment_folder}/PlantsTatistics.txt"
-        brain_size = [len(plant.states) for plant in self.PlantsList]
-        age = [plant.age for plant in self.PlantsList]
-        green_shade = [plant.color[1] for plant in self.PlantsList]
         output = f"[{self.year}]------------------------------------------------------------------------------------------------------------------"
-        output += f"\n     BRAIN -> Median:{round(statistics.median(brain_size),2)}, Mean:{round(statistics.mean(brain_size),2)}, Std.Dev:{round(statistics.stdev(brain_size),2)}"
-        output += f"\n     AGE   -> Median:{round(statistics.median(age),2)}, Mean:{round(statistics.mean(age),2)}, Std.Dev:{round(statistics.stdev(age),2)}\n"
-        output += f"\n     COLOR -> Median:{round(statistics.median(green_shade),0)}, Mean:{round(statistics.mean(green_shade),0)}, Std.Dev:{round(statistics.stdev(green_shade),0)}\n"
+        brain_size = [len(plant.states) for plant in self.PlantsList]
+        if brain_size: output += f"\n     BRAIN -> Median:{round(statistics.median(brain_size),2)}, Mean:{round(statistics.mean(brain_size),2)}, Std.Dev:{round(statistics.stdev(brain_size),2)}"
+        age = [plant.age for plant in self.PlantsList]
+        if age: output += f"\n     AGE   -> Median:{round(statistics.median(age),2)}, Mean:{round(statistics.mean(age),2)}, Std.Dev:{round(statistics.stdev(age),2)}"
+        green_shade = [plant.color[1] for plant in self.PlantsList]
+        if green_shade: output += f"\n     COLOR -> Median:{round(statistics.median(green_shade),0)}, Mean:{round(statistics.mean(green_shade),0)}, Std.Dev:{round(statistics.stdev(green_shade),0)}\n"
+
 
         with open(file_name, "a") as file:
             file.write(output)
@@ -108,15 +121,17 @@ def main(steps:int, render: bool=True):
     frames = []
     currentime = datetime.datetime.now()
     currentime = currentime.strftime(f"%Y-%m-%d_%H-%M-%S")
-    experiment_folder = f"Results/Experiment {currentime}"
+    experiment_folder = f"/home/nonato/Documents/Evo-experiment-Results/Experiment {currentime}"
     os.makedirs(experiment_folder)
 
     game = Game(canvas)
-    global exit
+    exit = False
     with tqdm(total=steps, desc="Progress", ncols=100) as progress_bar:
         while not exit: 
             for event in pygame.event.get(): 
                 if event.type == pygame.QUIT: 
+                    exit = True
+            if len(game.PlantsList)<1:
                     exit = True
         #############################################
             canvas.fill((0, 0, 0)) 
@@ -143,5 +158,5 @@ def main(steps:int, render: bool=True):
     pygame.quit()
 
 if __name__ == "__main__":
-    main(steps=1500,render=False)
+    main(steps=10000,render=True)
     #cProfile.run("main(steps=1000,render=False)")
