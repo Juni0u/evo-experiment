@@ -48,7 +48,7 @@ class Game():
         random.shuffle(self.PlantsList)
         #if (self.year%10==0):
         if len(self.PlantsList) < 10:
-             self.create_plant_population(3)
+            self.create_plant_population(3)
 
         for plant in self.PlantsList:
             self.PlantsList, self.FruitList = plant.update(self.env, self.PlantsList,self.FruitList, self.canvas)

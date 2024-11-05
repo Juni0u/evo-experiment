@@ -22,4 +22,4 @@ PLANTS_COLOR = [
     ] #https://colordesigner.io/gradient-generator
 
 MARKOV_MUTATION_PROB = 0.1
-MARKOV_MUTATION_INTERVAL = [0.05,0.15]
+MARKOV_MUTATION_INTERVAL = [0.05,0.95]
