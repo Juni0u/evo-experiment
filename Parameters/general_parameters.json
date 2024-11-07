@@ -1,0 +1,16 @@
+{
+"RESOLUTION":[128,128],
+"SCREEN_SIZE":[640,640],
+"SUN_ENERGY":15,
+"CREATURE_MUTATION_RATE":0.03, 
+"PLANTS_COLOR":[
+    [0,235,0],
+    [121,213,0],
+    [165,188,0],
+    [197,161,0],
+    [223,130,0],
+    [244,87,0],
+    [255,0,0]
+    ],
+"EXPERIMENT_FOLDER":"/home/nonato/Documents/Evo-experiment-Results/"
+}

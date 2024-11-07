@@ -1,6 +1,6 @@
 import pygame, uuid, random, time
 from creature import Creature
-from plants import Plant, Fruit
+from Plants.plants import Plant, Fruit
 from environment import Environment, Region
 from global_vars import RESOLUTION, SUN_ENERGY
 from tqdm import tqdm
@@ -33,10 +33,7 @@ class Game():
         self.canvas = canvas
 
         self.env = Environment()
-        self.env.create_new_region(0,0,int(RESOLUTION[0]/2),int(RESOLUTION[1]/2), SUN_ENERGY*1.25)
-        self.env.create_new_region(int(RESOLUTION[0]/2),0,int(RESOLUTION[0]/2),int(RESOLUTION[1]/2), SUN_ENERGY*0.5)
-        self.env.create_new_region(int(RESOLUTION[0]/2),int(RESOLUTION[1]/2),int(RESOLUTION[0]/2),int(RESOLUTION[1]/2), SUN_ENERGY*0.25)
-
+        
         self.AgentList = []
         self.PlantsList = []
         self.FruitList = []        

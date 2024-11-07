@@ -1,13 +1,14 @@
 import numpy as np, random as rd
-from global_vars import MARKOV_MUTATION_PROB, MARKOV_MUTATION_INTERVAL, MARKOV_ZONE_MUTATION_PROB, MARKOV_ZONE_MUTATION_INTERVAL
+from config import Parameters
 
 #TODO: Make a class of markov environment: it has functions that act on probabilities matrix of a specific type.
 
 class MarkovChainEnvironment():
-    def __init__(self, mutation_probability: float = MARKOV_MUTATION_PROB, mutation_interval: list = MARKOV_MUTATION_INTERVAL) -> None:
+    def __init__(self, mutation_probability: float, mutation_interval: list) -> None:
         """[mutation_probability] = Chance for a mutation to happen;
         [mutation_interval] = range of mutation changes"""
 
+        self.parameter = Parameters()
         self.mutation_prob = mutation_probability
         self.mutation_interval = mutation_interval
 
@@ -21,10 +22,6 @@ class MarkovChainEnvironment():
             sum = np.sum(output[i,:])
             output[i,:] = (output[i,:]/sum)
         return output
-    
-    def state_transition(self, row: np.ndarray) -> int:
-        """Given the returns the [index] of the next state based on a given [row] of probabilities"""
-        return np.random.choice(a=len(row),p=row)
     
     def normalize_matrix(self, matrix: np.ndarray) -> np.ndarray:
         """Given a [matrix], returns a normalized version where sum of the values in each row is 1"""
@@ -62,8 +59,8 @@ class MarkovChainEnvironment():
             self.normalize_matrix(matrix)
         return matrix
     
-class MarkovChainIndividual(MarkovChainEnvironment):
-    def __init__(self,  transition_grid = 0, states:list=[0], transition_zones:int=1, mutation_probability: float = MARKOV_MUTATION_PROB, mutation_interval: list = MARKOV_MUTATION_INTERVAL) -> None:
+class Brain(MarkovChainEnvironment):
+    def __init__(self, mutation_probability: float, mutation_interval: list,transition_grid = 0, states:list=[0], transition_zones:int=1) -> None:
         super().__init__(mutation_probability, mutation_interval)
         """transition_grid: The group of probability matrix of all 'transition_zones' -> 0 = Random probability Matrix based on n_states
         n_states: Number of existing states
@@ -85,23 +82,29 @@ class MarkovChainIndividual(MarkovChainEnvironment):
             self.transition_zones = transition_grid.shape[0]
             self.transition_grid = transition_grid                     
 
-
-        self.current_transition_grid = 0
-        self.current_state = self.states[0]
-        self.current_state_index = self.states.index(self.current_state)
+        self.current_brain_zone = 0
+        self.current_brain_state = self.states[0]
+        self.current_brain_state_index = self.states.index(self.current_brain_state)
         
-    def change_state(self) -> None:
-        self.current_state_index = self.state_transition(self.transition_grid[self.current_transition_grid,self.current_state_index,:])
-        self.current_state = self.states[self.current_state_index]
+    def state_transition(self) -> None:
+        """Transitions state based com self.current_brain_state"""
+        current_state_row = self.transition_grid[self.current_brain_zone,self.current_brain_state_index,:]
+        self.current_brain_state_index = np.random.choice(a=len(current_state_row),p=current_state_row)
+        self.current_brain_state = self.states[self.current_brain_state_index]
 
     def mutate(self,transition_zone:int=9999) -> None:
         if transition_zone == 9999: transition_zone = rd.randint(0,self.transition_zones-1)
-        self.mutate_probability_in_matrix(self.transition_grid[transition_zone,:,:])
-
+        self.transition_grid[transition_zone,:,:] = self.mutate_probability_in_matrix(self.transition_grid[transition_zone,:,:])
 
 def main():
     b=np.zeros((3,2,2))
-    A=MarkovChainIndividual(transition_grid=0,states=["idle","move","run"],transition_zones=2)
+    A=Brain(1,[0.05,0.25],states=["idle","move","run"],transition_zones=2)
+    print(A.transition_grid)
+    print("MUTATION")
+    for i in range(A.transition_grid.shape[0]):
+        #print(i)
+        A.mutate(i)
+    print(A.transition_grid)
 
 if __name__ == "__main__":
     main()

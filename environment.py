@@ -1,10 +1,11 @@
-from global_vars import SUN_ENERGY, RESOLUTION
+from config import Parameters
 import pygame, random
 
 class Environment():
     def __init__(self) -> None:
-        self.standart_energy = SUN_ENERGY
-        self.size = RESOLUTION
+        self.parameter = Parameters()
+        self.standart_energy = self.parameter.sun_energy
+        self.size = self.parameter.resolution
         self.regions = []
 
     def create_new_region(self,x0:int,y0:int,w:int,h:int,given_energy:float):
@@ -20,7 +21,7 @@ class Environment():
         if len(regions_collided) > 0: 
             chosen = random.choice(regions_collided)
             food = chosen.food_available
-        else: food = SUN_ENERGY
+        else: food = self.standart_energy
         return food
 
 class Region():
