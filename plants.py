@@ -37,9 +37,9 @@ class Plant():
         if (self.energy <= 0) or (rd.random() < self.death_prob):
             Plants.remove(self)
             return Plants, Fruits
-        if "eat" in self.state:
+        if "eat" in self.brain.current_brain_state:
             self.eat(Environment)
-        elif "reproduce" in self.state:
+        elif "reproduce" in self.brain.current_brain_state:
             F = self.spawnFood(canvas)
             if F: Fruits.append(F)
         return Plants, Fruits
@@ -70,11 +70,12 @@ class Plant():
 
         self.assign_brain_zone_to_energy_level()
         self.updates_brain_zone()
+        self.color = self.parameter.plant.colors[self.brain.transition_grid.shape[0]-1]
         self.gene = [self.energy_capacity,self.metabolism,self.food_spawn_thresold,self.brain]        
 
     def update_death_prob(self):
         "Updates death probability."
-        cons = 0.15
+        cons = 1
         unit_increment = (self.parameter.plant.max_death_prob/self.parameter.plant.age_max_death_prob)
         self.death_prob += unit_increment*cons
 
@@ -159,7 +160,7 @@ class Fruit():
 
     def sprout(self, Plants, Fruits):
         if self in Fruits:
-            for zone in self.gene[3].transition_grid.shape[0]:
+            for zone in range(self.gene[3].transition_grid.shape[0]-1):
                 self.gene[3].mutate(zone)
             Plants.append(Plant(x=self.x, y=self.y, gene=self.gene))
             Fruits.remove(self)
@@ -168,16 +169,7 @@ class Fruit():
 
 def main():
     A = Plant(0,0)
-    
-    energia = [10,20,30,40,50,60,70,80,90,100]
-    print(A.brain.transition_grid)
-    for nivel in energia:
-        A.state_transition()
-        print(f"brain state = {A.brain.current_brain_state}, brain zone = {A.brain.current_brain_zone+1}({len(A.brain_zones_intervals)})")
-        print(A.energy)
-        A.energy = nivel
-        print(A.brain.transition_grid[A.brain.current_brain_zone,:,:])
-        print()
+
 
 if __name__ == "__main__":
     main()
