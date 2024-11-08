@@ -1,31 +1,30 @@
-import numpy as np
-import matplotlib.pyplot as plt
+from environment import Environment
 
-# Sample data points (replace with your actual data)
-x_data = np.array([0,300,400,450,500])
-y_data = np.array([0,0.1,0.15,0.5,0.95])
+res = (5,5)
+grid = {}
 
-# Log-transform the y-values
-log_y_data = np.log(y_data)
+env = Environment()
+env.create_new_region(0,0,int(res[0]/2),int(res[1]/2), 15)
+env.create_new_region(int(res[0]/2),0,int(res[0]/2),int(res[1]/2), 5)
 
-# Perform linear regression on the log-transformed data
-coeffs = np.polyfit(x_data, log_y_data, 1)
-b = coeffs[0]
-ln_a = coeffs[1]
-a = np.exp(ln_a)
+for y in range(res[1]):
+    for x in range(res[0]):
+        grid[(x,y)] = { "plants": [],
+            "fruits": [],
+            "creatures": []
+        }
+    
+        for region in env.regions:
+            if x >=region.x and x<region.x+region.w:              
+                if y>=region.y and y<region.y+region.h:
+                    grid[(x,y)]["env"] = region
+                    break
 
-# Generate points to plot the fitted curve
-x_fit = np.linspace(min(x_data), max(x_data), 100)
-y_fit = a * np.exp(b * x_fit)
 
-# Plot the original data and the fitted curve
-plt.scatter(x_data, y_data, label='Data Points')
-plt.plot(x_fit, y_fit, color='red', label=f'Fitted: $y = {a:.2f}e^{{{b:.2f}x}}$')
-plt.title('Exponential Fit')
-plt.xlabel('x')
-plt.ylabel('y')
-plt.legend()
-plt.show()
+# for key, items in grid.items():
+#     print(key,items)
 
-# Print the fitted parameters
-print(f"Fitted parameters: a = {a:.2f}, b = {b:.2f}")
+import uuid
+
+a=f"plant_{uuid.uuid4()}"
+print(a)

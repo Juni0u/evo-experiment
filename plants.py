@@ -1,4 +1,4 @@
-import pygame, math, random as rd
+import pygame, math, random as rd, uuid
 from config import Parameters
 from markov_chain import Brain
 from typing import Optional
@@ -12,6 +12,7 @@ class Plant():
         self.parameter = Parameters()
         self.x = x
         self.y = y
+        self.id = f"plant-{uuid.uuid4()}"
         self.color = self.parameter.plant.base_color      
         self.spawn_radius = self.parameter.plant.spawn_radius 
         self.death_prob = 0
@@ -22,6 +23,12 @@ class Plant():
         self.state = self.parameter.plant.states[0]
         self.translation(self.gene)
         
+    def __hash__(self) -> int:
+        return hash(self.id)
+    
+    def __eq__(self, value: "Plant") -> bool:
+        return (self.id==value.id)
+
     def draw(self, canvas) -> None:
         canvas.set_at((int(self.x),int(self.y)), self.color) 
         for ix in range(-1,2):
@@ -133,13 +140,20 @@ class Fruit():
         self.parameter = Parameters()
         self.x = x
         self.y = y
+        self.id = f"fruit-{uuid.uuid4()}"
         self.color = self.parameter.plant.food_standard_color
         self.sprout_chance = self.parameter.plant.food_sprout_chance
         self.gene = gene 
         ##[self.energy_capacity,self.metabolism,self.food_spawn_thresold,self.food_spawn_chance,self.health_divisions,self.states,self.brain]
         ##[         0          ,         1     ,           2            ,         3            ,          4          ,     5     ,     6    ] 
         self.energy = self.gene[2]
-        self.rect = pygame.Rect(x,y,1,1)        
+        self.rect = pygame.Rect(x,y,1,1) 
+
+    def __hash__(self) -> int:
+        return hash(self.id)
+    
+    def __eq__(self, value: "Plant") -> bool:
+        return (self.id==value.id)       
 
     def draw(self, canvas) -> None:
         canvas.set_at((int(self.x),int(self.y)), self.color) 

@@ -132,8 +132,7 @@ class EvoSim():
                 file.write(f"{plant.age}\n")
                 for matrix in plant.brain.transition_grid:
                     np.savetxt(file, matrix, fmt='%.5f', delimiter=' ')
-                    file.write("\n")
-    
+                    file.write("\n")    
 
 def main(max_steps,render,save_video):
     sim = EvoSim()

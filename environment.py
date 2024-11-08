@@ -1,5 +1,5 @@
 from config import Parameters
-import pygame, random
+import pygame, random, uuid
 
 class Environment():
     def __init__(self) -> None:
@@ -9,7 +9,9 @@ class Environment():
         self.regions = []
 
     def create_new_region(self,x0:int,y0:int,w:int,h:int,given_energy:float):
-        self.regions.append(Region(x0,y0,w,h,given_energy))
+        new_region = Region(x0,y0,w,h,given_energy)
+        self.regions.append(new_region)
+        return new_region
 
     def energy_given(self,rect:"pygame.Rect"):
         """Checks collision to all existing regions and return the energy earned based on it.
@@ -27,7 +29,10 @@ class Environment():
 class Region():
     def __init__(self,x0:int,y0:int,w:int,h:int,given_energy: float) -> None:
         self.rect = pygame.Rect(x0,y0,w,h)
-        self.food_available = given_energy
-    
-        
+        self.id = f"region-{uuid.uuid4()}"
+        self.x=x0
+        self.y=y0
+        self.w=w
+        self.h=h
+        self.food_available = given_energy 
 
