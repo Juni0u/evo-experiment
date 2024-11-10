@@ -17,7 +17,7 @@ class Plant():
         self.spawn_radius = self.parameter.plant.spawn_radius 
         self.death_prob = 0
         self.gene = gene
-        self.rect = pygame.Rect(self.x-1,self.y-1,2,2)
+        self.rect = pygame.Rect(self.x,self.y,1,1)
 
         self.age = 0
         self.state = self.parameter.plant.states[0]
@@ -31,9 +31,6 @@ class Plant():
 
     def draw(self, canvas) -> None:
         canvas.set_at((int(self.x),int(self.y)), self.color) 
-        for ix in range(-1,2):
-            for iy in range(-1,2):
-                canvas.set_at((int(self.x+ix),int(self.y+iy)), self.color) 
         return canvas
 
     def update(self,Environment,Plants,Fruits,canvas):

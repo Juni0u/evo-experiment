@@ -7,6 +7,7 @@ import pygame, time, datetime, os, imageio, random as rd, numpy as np
 class EvoSim():
     def __init__(self) -> None:
         self.config_initialization()
+        self.pygame_config_initialization()
         self.var_initialization()
 
     def update(self,events):
@@ -15,7 +16,7 @@ class EvoSim():
         rd.shuffle(self.FruitList)
         self.step += 1
         if len(self.PlantsList)%100:
-            self.create_plant_population(2) 
+            self.create_plant_population(1) 
             
 
         for plant in self.PlantsList:
@@ -99,14 +100,16 @@ class EvoSim():
         self.render = False
         self.step = 0
 
-    def config_initialization(self) -> None:
+    def pygame_config_initialization(self) -> None:
         pygame.init()
         pygame.font.init()
-        self.parameter = Parameters()
-        self.seed = int(time.time() * 777)
         self.screen = pygame.display.set_mode(tuple(self.parameter.screen_size))
         self.canvas = pygame.Surface(tuple(self.parameter.resolution))#self.parameter.resolution)
         self.clock = pygame.time.Clock()
+
+    def config_initialization(self) -> None:
+        self.parameter = Parameters()
+        self.seed = int(time.time() * 777)
 
     def check_if_QUIT(self, events) -> None:
         for event in events:
@@ -139,4 +142,4 @@ def main(max_steps,render,save_video):
     sim.start_game(max_steps, render, save_video)
 
 if __name__ == "__main__":
-    main(max_steps=5000, render=True, save_video=True)
+    main(max_steps=10000, render=True, save_video=False)
