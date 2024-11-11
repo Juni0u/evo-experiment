@@ -1,7 +1,7 @@
 {
-"RESOLUTION":[1024,1024],
-"SCREEN_SIZE":[1024,1024],
+"RESOLUTION":[128,128],
+"SCREEN_SIZE":[540,540],
 "SUN_ENERGY":15,
 "CREATURE_MUTATION_RATE":0.03, 
-"EXPERIMENT_FOLDER":"/home/nonato/Documents/Evo-experiment-Results/"
+"EXPERIMENT_FOLDER":"/home/nonato/Documents/Evo-experiment-Results"
 }

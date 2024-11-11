@@ -36,3 +36,8 @@ class Region():
         self.h=h
         self.food_available = given_energy 
 
+    def __hash__(self) -> int:
+        return hash(self.id)
+    
+    def __eq__(self, value: "Region") -> bool:
+        return (self.id==value.id)

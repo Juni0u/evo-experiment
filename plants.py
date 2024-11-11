@@ -2,6 +2,7 @@ import pygame, math, random as rd, uuid
 from config import Parameters
 from markov_chain import Brain
 from typing import Optional
+# from grid import Grid
 #TODO: As frutas que evoluem para plantas n:ao tem o thresold de energia porque nunca passando por create states with health
 
 class Plant():
@@ -33,20 +34,19 @@ class Plant():
         canvas.set_at((int(self.x),int(self.y)), self.color) 
         return canvas
 
-    def update(self,Environment,Plants,Fruits,canvas):
+    def update(self, simulation):
         self.age += 1
         self.update_death_prob()
         self.metabolize()
         self.state_transition() # <- brain state and zone are updated in here
         if (self.energy <= 0) or (rd.random() < self.death_prob):
-            Plants.remove(self)
-            return Plants, Fruits
+            simulation.remove_plant(self.x,self.y)
+            return simulation
         if "eat" in self.brain.current_brain_state:
-            self.eat(Environment)
+            self.eat(simulation)
         elif "reproduce" in self.brain.current_brain_state:
-            F = self.spawnFood(canvas)
-            if F: Fruits.append(F)
-        return Plants, Fruits
+            simulation = self.spawnFood(simulation)
+        return simulation
 
     def translation(self, gene):
         ##[self.energy_capacity,self.metabolism,self.food_spawn_thresold,self.brain]
@@ -56,7 +56,7 @@ class Plant():
             gene = [self.parameter.plant.standard_energy_capacity,
                     self.parameter.plant.standard_metabolism,
                     self.parameter.plant.standard_food_spawn_energy_thresold,
-                    [0]]            
+                    0]            
     
         self.energy_capacity = gene[0]
         self.metabolism = gene[1]
@@ -65,10 +65,13 @@ class Plant():
         self.energy = self.energy_capacity
 
         if not isinstance(self.brain, Brain): 
+            brain_zone = gene[3]
+            if self.brain==0: 
+                brain_zone = rd.randint(self.parameter.plant.brain_size_interval[0],self.parameter.plant.brain_size_interval[1])
             self.brain = Brain(mutation_probability=self.parameter.plant.mutation_prob,
                                                mutation_interval=self.parameter.plant.mutation_interval,
                                                states=self.parameter.plant.states,
-                                               transition_zones=rd.randint(1,7))
+                                               transition_zones=brain_zone)
         else: #if a brain was
             self.brain = self.brain   
 
@@ -108,29 +111,30 @@ class Plant():
                 self.brain.current_brain_zone = i
                 break
 
-    def eat(self, environment) -> None:
-        self.energy += environment.energy_given(self.rect)
+    def eat(self, simulation) -> None:
+        if simulation.grid[(self.x,self.y)]["env"]:
+            pick_env = rd.choice(list(simulation.grid[(self.x,self.y)]["env"]))
+            to_eat = pick_env.food_available
+        else:
+            to_eat = simulation.environment.standart_energy
+        self.energy += to_eat
 
     def metabolize(self) -> None:
         self.energy -= self.metabolism
     
-    def spawnFood(self,canvas) -> Optional["Fruit"]:
+    def spawnFood(self,simulation):
         pos=[self.x+rd.randint(-self.spawn_radius,self.spawn_radius),self.y+rd.randint(-self.spawn_radius,self.spawn_radius)]
         if pos[0] > self.parameter.resolution[0]-1: pos[0] = self.parameter.resolution[0]-1
         elif pos[0] < 0: pos[0] = 0
         if pos[1] > self.parameter.resolution[1]-1: pos[1] = self.parameter.resolution[1]-1
         elif pos[1] < 0: pos[1] = 0
         
-        if (self.energy > self.food_spawn_thresold) and not (self.is_pixel_food(canvas,pos)):
-            F = Fruit(x=pos[0],y=pos[1],gene=self.gene) 
+        if (self.energy > self.food_spawn_thresold):
+            if "fruit" in simulation.grid[(pos[0],pos[1])]:
+                simulation.remove_fruit(x=pos[0],y=pos[1])
+            simulation.add_fruit(x=pos[0],y=pos[1],gene=self.gene)
             self.energy -= self.food_spawn_thresold
-            return F
-        return None
-    
-    def is_pixel_food(self,canvas,pos):
-        pixel_color = canvas.get_at(pos)
-        if pixel_color== self.parameter.plant.food_standard_color: return True
-        else: return False
+        return simulation
 
 class Fruit():
     def __init__(self,x:int,y:int,gene:list) -> None:
@@ -156,27 +160,24 @@ class Fruit():
         canvas.set_at((int(self.x),int(self.y)), self.color) 
         return canvas
 
-    def update(self, Plants, Fruits):
-        if self.energy <= 0:
-            Fruits = self.die(Fruits)
-            return Plants, Fruits
+    def update(self, simulation):
         self.energy -= 1
+        if self.energy <= 0:
+            simulation.remove_fruit(x=self.x,y=self.y)
+            return simulation
         if rd.random() < self.sprout_chance:
-            Plants, Fruits = self.sprout(Plants, Fruits)
-        return Plants, Fruits
+            simulation = self.sprout(simulation)
+        return simulation
 
     def die(self, Fruits):
         Fruits.remove(self)
         return Fruits
 
-    def sprout(self, Plants, Fruits):
-        if self in Fruits:
-            for zone in range(self.gene[3].transition_grid.shape[0]-1):
-                self.gene[3].mutate(zone)
-            Plants.append(Plant(x=self.x, y=self.y, gene=self.gene))
-            Fruits.remove(self)
-            return Plants, Fruits
-        return Plants, Fruits
+    def sprout(self, simulation):
+        for zone in range(self.gene[3].transition_grid.shape[0]-1):
+            self.gene[3].mutate(zone)
+        simulation.add_plant(x=self.x, y=self.y, gene=self.gene)
+        return simulation
 
 def main():
     A = Plant(0,0)
