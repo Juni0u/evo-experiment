@@ -1,5 +1,6 @@
 from plants import Plant, Fruit
 #from creature import Creature
+import typing
 from environment import Environment, Region
 import uuid, pickle, random as rd
 GRID_ELEMENTS = ("fruit","plant","creature") 
@@ -17,19 +18,27 @@ class Grid():
         self.environment = Environment()
 
     def build_grid(self):
-        grid = {}
-        for y in range(self.y_size):
-            for x in range(self.x_size):
-                grid[(x,y)] = {
+        # grid = {}
+        grid: list[list[dict[str, typing.Any]]] = [
+            [
+                {
                     "env": set(),
-                    "neighbors": set(),
-                }
-                grid[(x,y)]["neighbors"] = set(self.get_neighbors(x,y))
+                } for _ in range(self.x_size)
+            ] for _ in range(self.y_size)
+        ]
+        # for y in range(self.y_size):
+        #     for x in range(self.x_size):
+        #         grid[(x,y)] = {
+        #             "env": set(),
+        #             "neighbors": set(),
+        #         }
+                
+        #         grid[(x,y)]["neighbors"] = set(self.get_neighbors(x,y))
 
-        grid[(0,0)]["neighbors"] = {(0,1),(1,0),(1,1)}
-        grid[(0,self.y_size-1)]["neighbors"] = {(0,self.y_size-2),(1,self.y_size-2),(1,self.y_size-1)}
-        grid[(self.x_size-1),0]["neighbors"] = {(self.x_size-2,0),(self.x_size-2,1),(self.x_size-1,1)}
-        grid[(self.x_size-1,self.y_size-1)]["neighbors"] = {(self.x_size-1,self.y_size-2),(self.x_size-2,self.y_size-2),(self.x_size-2,self.y_size-1)}
+        # grid[0][0]["neighbors"] = {(0,1),(1,0),(1,1)}
+        # grid[(0,self.y_size-1)]["neighbors"] = {(0,self.y_size-2),(1,self.y_size-2),(1,self.y_size-1)}
+        # grid[(self.x_size-1),0]["neighbors"] = {(self.x_size-2,0),(self.x_size-2,1),(self.x_size-1,1)}
+        # grid[(self.x_size-1,self.y_size-1)]["neighbors"] = {(self.x_size-1,self.y_size-2),(self.x_size-2,self.y_size-2),(self.x_size-2,self.y_size-1)}
         return grid
 
     def get_neighbors(self,x,y):
@@ -57,28 +66,28 @@ class Grid():
             for x in range(self.x_size):
                 if x >=new_region.x and x<=new_region.x+new_region.w:              
                     if y>=new_region.y and y<=new_region.y+new_region.h:
-                        self.grid[(x,y)]["env"].add(new_region)
+                        self.grid[x][y]["env"].add(new_region)
 
     def add_plant(self, x:int, y:int, gene:list=[0]):
-        if "plant" not in self.grid[(x,y)]:
+        if "plant" not in self.grid[x][y]:
             new_plant = Plant(x,y,gene)
-            self.grid[(x,y)]["plant"] = new_plant
+            self.grid[x][y]["plant"] = new_plant
             self.plants_occupy.add((x,y))
             return new_plant.id
 
     def add_fruit(self, x:int, y:int, gene:list=[0]):
-        if "fruit" not in self.grid[(x,y)]:
+        if "fruit" not in self.grid[x][y]:
             new_fruit = Fruit(x,y,gene)
-            self.grid[(x,y)]["fruit"] = new_fruit
+            self.grid[x][y]["fruit"] = new_fruit
             self.fruits_occupy.add((x,y))
             return new_fruit.id
 
     def remove_plant(self, x, y):
-        del self.grid[(x,y)]["plant"]
+        del self.grid[x][y]["plant"]
         self.plants_occupy.discard((x,y))
 
     def remove_fruit(self, x, y):
-        del self.grid[(x,y)]["fruit"]
+        del self.grid[x][y]["fruit"]
         self.fruits_occupy.discard((x,y))
 
     def save_grid_state(self, address,step):
@@ -102,12 +111,12 @@ if __name__ == "__main__":
     #     for key2, items2 in A.grid[key].items():
     #         print(key2,items2)
 
-    if A.grid[(2,3)]["env"]:
-        print(A.grid[(2,3)]["env"])
-        pick_env =rd.choice(list(A.grid[(2,3)]["env"])) 
-        print(pick_env.food_available)
-    else:
-        print(20)
+    # if A.grid[(2,3)]["env"]:
+    #     print(A.grid[(2,3)]["env"])
+    #     pick_env =rd.choice(list(A.grid[(2,3)]["env"])) 
+    #     print(pick_env.food_available)
+    # else:
+    #     print(20)
     # print(A.grid[(1,1)])
     # print(A.plants_occupy)
     # A.remove_plant(1,1,aid)

@@ -1,0 +1,8 @@
+{
+    "STANDARD_COLOR":[255,0,255],
+    "STATES":["idle","move","eat","reproduce"],
+    "STANDARD_ENERGY_CAPACITY":100,
+    "STANDARD_METABOLISM":5,
+    "REPRODUCTION_THRESOLD":75,
+    "MUTATION_PROB":0.01
+}

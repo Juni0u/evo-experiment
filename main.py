@@ -22,11 +22,11 @@ class EvoSim():
         rd.shuffle(shuffled_plants)
         rd.shuffle(shuffled_fruits)
 
-        for plant_pos in shuffled_plants:
-            self.simulation = self.simulation.grid[plant_pos]["plant"].update(self.simulation)
+        for x,y in shuffled_plants:
+            self.simulation = self.simulation.grid[x][y]["plant"].update(self.simulation)
 
-        for fruit_pos in shuffled_fruits:
-            self.simulation = self.simulation.grid[fruit_pos]["fruit"].update(self.simulation)
+        for x,y in shuffled_fruits:
+            self.simulation = self.simulation.grid[x][y]["fruit"].update(self.simulation)
 
        # self.simulation.save_grid_state(address=self.grid_folder,step=self.step)
 
@@ -36,11 +36,11 @@ class EvoSim():
     def draw(self):        
             self.before_draw()
 
-            for fruit_pos in self.simulation.fruits_occupy:
-                self.canvas = self.simulation.grid[fruit_pos]["fruit"].draw(self.canvas)
+            for x,y in self.simulation.fruits_occupy:
+                self.canvas = self.simulation.grid[x][y]["fruit"].draw(self.canvas)
 
-            for plant_pos in self.simulation.plants_occupy:
-                self.canvas = self.simulation.grid[plant_pos]["plant"].draw(self.canvas)
+            for x,y in self.simulation.plants_occupy:
+                self.canvas = self.simulation.grid[x][y]["plant"].draw(self.canvas)
 
             font = pygame.font.Font(None,16)
             step_text = font.render(f"{self.step}",True, (255,0,255))
@@ -62,7 +62,7 @@ class EvoSim():
         self.initialize_environments()
         #self.create_plant_population(150)
         # self.create_population_per_environment(50)
-        self.create_population_per_environment_per_brain_zone(30)
+        self.create_population_per_environment_per_brain_zone(50)
 
         with tqdm(total=max_steps, desc="Progress", ncols=100) as progress_bar:
             while (not self.exit) and (self.step!=max_steps):

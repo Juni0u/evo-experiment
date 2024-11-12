@@ -11,9 +11,9 @@ class Parameters:
         self.resolution = data["RESOLUTION"]
         self.screen_size = data["SCREEN_SIZE"]
         self.sun_energy = data["SUN_ENERGY"]
-        self.creature_mutation_rate = data["CREATURE_MUTATION_RATE"]
         self.experiment_folder=data["EXPERIMENT_FOLDER"]
         self.plant = PlantParameters()
+        self.creature = CreatureParameters()
 
     def __str__(self) -> str:
         output = ""
@@ -44,6 +44,28 @@ class PlantParameters:
         self.mutation_prob=data["MUTATION_PROB"]
         self.mutation_interval=data["MUTATION_INTERVAL"]
         self.brain_size_interval=data["BRAIN_SIZE_INTERVAL"]
+
+    def __str__(self) -> str:
+        output = ""
+        for key,value in vars(self).items():
+            output += f"{key}={value}\n"
+        return output
+    
+class CreatureParameters:
+    def __init__(self, json_file="Parameters/creature_parameters.json") -> None:
+        self.parameter_file = json_file
+        self.load_config()
+
+    def load_config(self):
+        with open(self.parameter_file, "r") as file:
+            data = json.load(file)
+        self.color = data["STANDARD_COLOR"]
+        self.states = data["STATES"]
+        self.standard_energy_capacity = data["STANDARD_ENERGY_CAPACITY"]
+        self.standard_metabolism = data["STANDARD_METABOLISM"]
+        self.standard_reproduction_thresold = data["REPRODUCTION_THRESOLD"]
+        self.mutation_prob = data["MUTATION_PROB"]
+        
 
     def __str__(self) -> str:
         output = ""

@@ -1,43 +1,34 @@
 import pygame, math, random, uuid
-from global_vars import FOOD_STANDARD_COLOR, RESOLUTION, MUTATION_RATE
+from config import Parameters
 
 class Creature():
-    def __init__(self,id,x:int,y:int,color:tuple,born_in:int,chromosome:str):
-        """Gene:
-        [0,0,0,0,0|0,0,0,0|0,0,0,0|0,0,0,0]
-        |0-------4|5-----8|9----12|13---16|
-        | max_sta | spd   |vis_rad|rpd_thr|"""
-        self.id = id
+    def __init__(self,id,x:int,y:int,gene=[0]):
+        self.parameter = Parameters()
+        self.id = f"creature-{uuid.uuid4()}"
         self.x = x
         self.y = y
-        self.color = color
-        self.born_in = born_in
+        self.color = self.parameter.creature.color
         self.stamina = 0
-        self.vision_radius=1
-        self.rect = pygame.Rect(x,y,1,1)
-        self.chromosome = chromosome
-        
-        self.state="idle"
+        self.vision_radius=1        
+        self.state=self.parameter.creature.states[0]
         self.hunt_target= [999,999]
-        if len(chromosome) != 17: raise ValueError("Chromosome does not have the right size.")
         self.birth()
 
     def __str__(self) -> str:
         output = f"Creature {self.id}\n"
-        output += f"----- Born in: {self.born_in}\n"
-        output += f"----- Max Stamina: {self.max_stamina}\n"
-        output += f"----- Max Steps: {self.max_steps}\n"
-        output += f"----- Vision Radius: {self.vision_radius}\n"
-        output += f"----- Reproduction thresold: {self.reprodution_thresold}\n"
         return output
 
-    def birth(self) -> None:
-        self.max_stamina = 50#int(self.chromosome[0:5],2)
-        self.max_steps = int(self.chromosome[5:9],2)-1/10000
-        self.vision_radius = int(self.chromosome[9:13],2)        
+    def translation(self, gene) -> None:
+       if len(gene) == 1: 
+            gene = [self.parameter.plant.standard_energy_capacity,
+                    self.parameter.plant.standard_metabolism,
+                    self.parameter.plant.standard_food_spawn_energy_thresold,
+                    0]        
+        self.energy_capacity = 100
+        self.vision_radius = 1       
         self.reprodution_thresold = 40#int(self.chromosome[13:16],2)
         
-        self.stamina = self.max_stamina
+        self.stamina = self.energy_capacity
         self.vision_rect = pygame.Rect(self.x-self.vision_radius,self.y-self.vision_radius,2*self.vision_radius,2*self.vision_radius)
 
     def update(self,year,FoodList,AgentList,seed):
@@ -130,7 +121,7 @@ class Creature():
         
     def eat(self, FoodList, index):    
         self.stamina += FoodList[index].energy
-        if self.stamina > self.max_stamina: self.stamina = self.max_stamina
+        if self.stamina > self.energy_capacity: self.stamina = self.energy_capacity
         del FoodList[index]
 
     def hunt(self):

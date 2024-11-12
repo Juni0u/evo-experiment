@@ -112,8 +112,8 @@ class Plant():
                 break
 
     def eat(self, simulation) -> None:
-        if simulation.grid[(self.x,self.y)]["env"]:
-            pick_env = rd.choice(list(simulation.grid[(self.x,self.y)]["env"]))
+        if simulation.grid[self.x][self.y]["env"]:
+            pick_env = rd.choice(list(simulation.grid[self.x][self.y]["env"]))
             to_eat = pick_env.food_available
         else:
             to_eat = simulation.environment.standart_energy
@@ -130,7 +130,7 @@ class Plant():
         elif pos[1] < 0: pos[1] = 0
         
         if (self.energy > self.food_spawn_thresold):
-            if "fruit" in simulation.grid[(pos[0],pos[1])]:
+            if "fruit" in simulation.grid[pos[0]][pos[1]]:
                 simulation.remove_fruit(x=pos[0],y=pos[1])
             simulation.add_fruit(x=pos[0],y=pos[1],gene=self.gene)
             self.energy -= self.food_spawn_thresold
