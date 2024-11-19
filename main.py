@@ -155,6 +155,7 @@ class EvoSim():
         self.grid_folder = f"{self.parameter.experiment_folder}/Grids"
         os.makedirs(self.grid_folder)
 
+    # Evo-experiment-Results
     # def get_plants_brains(self, file_name=""):
     #     if file_name=="": file_name= f"{self.parameter.experiment_folder}"
     #     file_name += "/Top10Oldest.txt"
@@ -175,4 +176,4 @@ def main(max_steps,render,save_video):
     sim.start_game(max_steps, render, save_video)
 
 if __name__ == "__main__":
-    main(max_steps=5000, render=True, save_video=True)
+    main(max_steps=5000, render=False, save_video=True)

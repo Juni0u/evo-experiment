@@ -1,3 +1,4 @@
+
 import pygame, math, random as rd, uuid
 from config import Parameters
 from markov_chain import Brain
