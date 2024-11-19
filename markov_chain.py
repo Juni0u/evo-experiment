@@ -25,12 +25,13 @@ class MarkovChainEnvironment():
     
     def normalize_matrix(self, matrix: np.ndarray) -> np.ndarray:
         """Given a [matrix], returns a normalized version where sum of the values in each row is 1"""
-        for i in range(matrix.shape[0]):
-            sum = np.sum(matrix[i,:])
-            matrix[i,:] = (matrix[i,:]/sum)
-        return matrix
+        normalized_matrix = matrix.copy().astype(float)
+        for i in range(normalized_matrix.shape[0]):
+            row_sum = np.sum(normalized_matrix[i,:])
+            normalized_matrix[i,:] = matrix[i,:]/row_sum
+        return normalized_matrix
 
-    def mutate_probability_in_matrix(self, matrix: np.ndarray) -> np.ndarray:
+    def mutate_probability_in_matrix(self, mut_matrix: np.ndarray) -> np.ndarray:
         """Mutation:
             - Mutation chance: 1 roll for each matrix
                 - If yes, chose 1 row randomly and then 2 columns randomly
@@ -38,7 +39,7 @@ class MarkovChainEnvironment():
                 - Decrease a column by a value between MARKOV_MUTATION_INTERVAL
                 - Increase the other column by the same value
             - Respect minimum of 0 and maximum of 1"""
-        
+        matrix = mut_matrix.copy().astype(float)
         n_states = matrix.shape[0]
         if rd.random() <= self.mutation_prob:
             row = rd.randint(0,n_states-1)
@@ -60,10 +61,10 @@ class MarkovChainEnvironment():
         return matrix
     
 class Brain(MarkovChainEnvironment):
-    def __init__(self, mutation_probability: float, mutation_interval: list,transition_grid = 0, states:list=[0], transition_zones:int=1) -> None:
+    def __init__(self, mutation_probability: float, mutation_interval: list, states:list, transition_grid = 0, transition_zones:int=1) -> None:
         super().__init__(mutation_probability, mutation_interval)
         """transition_grid: The group of probability matrix of all 'transition_zones' -> 0 = Random probability Matrix based on n_states
-        n_states: Number of existing states
+        states: list of states names
         transition_zones: Each zone has a probability matrix associated with.
         mutation_probability: Chance of mutation
         mutation_interval: Mutation change"""
@@ -97,14 +98,25 @@ class Brain(MarkovChainEnvironment):
         self.transition_grid[transition_zone,:,:] = self.mutate_probability_in_matrix(self.transition_grid[transition_zone,:,:])
 
 def main():
-    b=np.zeros((3,2,2))
-    A=Brain(1,[0.05,0.25],states=["idle","move","run"],transition_zones=2)
-    print(A.transition_grid)
-    print("MUTATION")
-    for i in range(A.transition_grid.shape[0]):
-        #print(i)
-        A.mutate(i)
-    print(A.transition_grid)
+    # b=np.zeros((3,2,2))
+    # A=Brain(1,[0.05,0.25],states=["idle","move","run"],transition_zones=2)
+    # print(A.transition_grid)
+    # print("MUTATION")
+    # for i in range(A.transition_grid.shape[0]):
+    #     #print(i)
+    #     A.mutate(i)
+    # print(A.transition_grid)
+    env = MarkovChainEnvironment(mutation_probability=1,mutation_interval=[0.05,0.95])
+    matrix1 = np.array([[1,2,3],
+                        [1,2,3],
+                        [1,2,3]])
+    matrix2 = np.array([[2,2,2],
+                        [2,2,2],
+                        [2,2,2]])
+    
+    ans1 = env.normalize_matrix(matrix=matrix1)
+    ans2 = env.normalize_matrix(matrix=matrix2)
+    print(ans1)
 
 if __name__ == "__main__":
     main()
