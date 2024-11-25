@@ -95,13 +95,7 @@ class TestBrain(unittest.TestCase):
             brain3.state_transition()
             
         self.assertEqual(brain3.current_brain_state_index, 4)
-        self.assertEqual(brain3.current_brain_state,"run")
+        self.assertEqual(brain3.current_brain_state,"run")       
         
-    def test_state_transitions_probs(self):
-        brain1 = Brain(mutation_probability=0.9,mutation_interval=[0.05,0.95],states=["idle","eat","reproduce"], transition_grid=0, transition_zones=2)
-        n_trials = 10000
-        
-        results = np.random.choice(a=) #TODO
-
 if __name__ == "__main__":
     unittest.main()

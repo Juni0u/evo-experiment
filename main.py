@@ -36,8 +36,8 @@ class EvoSim():
     def draw(self):        
             self.before_draw()
 
-            for x,y in self.simulation.fruits_occupy:
-                self.canvas = self.simulation.grid[x][y]["fruit"].draw(self.canvas)
+            # for x,y in self.simulation.fruits_occupy:
+            #      self.canvas = self.simulation.grid[x][y]["fruit"].draw(self.canvas)
 
             for x,y in self.simulation.plants_occupy:
                 self.canvas = self.simulation.grid[x][y]["plant"].draw(self.canvas)
@@ -86,6 +86,9 @@ class EvoSim():
         self.simulation.add_rectangle_region(int(self.parameter.resolution[0]/2),0,int(self.parameter.resolution[0]/2),int(self.parameter.resolution[1]/2), self.parameter.sun_energy*0.75)
         #down-righ = 0.5*normal-food
         self.simulation.add_rectangle_region(int(self.parameter.resolution[0]/2),int(self.parameter.resolution[1]/2),int(self.parameter.resolution[0]/2),int(self.parameter.resolution[1]/2), self.parameter.sun_energy*0.5)
+        #down-left = normal-food
+        self.simulation.add_rectangle_region(0,int(self.parameter.resolution[1]/2),int(self.parameter.resolution[0]/2),int(self.parameter.resolution[1]/2), self.parameter.sun_energy)
+
 
     def create_population_per_environment_per_brain_zone(self, qty_per_brain_zone_per_environment):
         for region in self.simulation.environment.regions:
@@ -176,4 +179,4 @@ def main(max_steps,render,save_video):
     sim.start_game(max_steps, render, save_video)
 
 if __name__ == "__main__":
-    main(max_steps=5000, render=False, save_video=True)
+    main(max_steps=10000, render=True, save_video=False)
