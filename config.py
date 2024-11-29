@@ -35,7 +35,7 @@ class PlantParameters:
         self.max_death_prob = data["MAX_DEATH_PROB"]
         self.spawn_radius = data["SPAWN_RADIUS"]
         self.base_color=data["BASE_COLOR"]
-        self.max_health_divisions=data["MAX_HEALTH_DIVISIONS"]
+        # self.max_health_divisions=data["MAX_HEALTH_DIVISIONS"]
         self.colors=data["COLORS"]
         self.states = data["STATES"]
         self.standard_energy_capacity = data["STANDARD_ENERGY_CAPACITY"]

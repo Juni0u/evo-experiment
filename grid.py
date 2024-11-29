@@ -11,12 +11,16 @@ class Grid():
         self.x_size = x_size
         self.y_size = y_size
         self.grid = self.build_grid()
+        self.all_grid_steps = []
 
         self.plants_occupy = set()
         self.fruits_occupy = set()
         self.creatures_occupy = set()
         self.environment = Environment()
 
+    def add_grid_step(self):
+        self.all_grid_steps.append(self.grid.copy())
+    
     def build_grid(self):
         # grid = {}
         grid: list[list[dict[str, typing.Any]]] = [
@@ -67,6 +71,17 @@ class Grid():
                 if x >=new_region.x and x<=new_region.x+new_region.w:              
                     if y>=new_region.y and y<=new_region.y+new_region.h:
                         self.grid[x][y]["env"].add(new_region)
+                        
+    def remove_rectangle_region(self, region_index:int):
+        if region_index < len(self.environment.regions):
+            region2remove = self.environment.regions[region_index]
+            for y in range(region2remove.y,region2remove.y+region2remove.h):
+                for x in range(region2remove.x,region2remove.x+region2remove.w):
+                    for env in self.grid[x][y]["env"]:
+                        if env.id==region2remove.id:
+                            self.grid[x][y]["env"].remove(region2remove)
+                            break
+            self.environment.remove_region(region_index)        
 
     def add_plant(self, x:int, y:int, gene:list=[0]):
         if "plant" not in self.grid[x][y]:
@@ -90,8 +105,8 @@ class Grid():
         del self.grid[x][y]["fruit"]
         self.fruits_occupy.discard((x,y))
 
-    def save_grid_state(self, address,step):
-        with open(f"{address}/[{step}]-{self.id}", "wb") as file:
+    def save_grid_state(self, address):
+        with open(f"{address}/{self.id}", "wb") as file:
             pickle.dump(self,file)
         
 

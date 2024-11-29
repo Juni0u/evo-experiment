@@ -12,6 +12,10 @@ class Environment():
         new_region = Region(x0,y0,w,h,given_energy)
         self.regions.append(new_region)
         return new_region
+    
+    def remove_region(self, index):
+        if index < len(self.regions):
+            del self.regions[index]
 
     def energy_given(self,rect:"pygame.Rect"):
         """Checks collision to all existing regions and return the energy earned based on it.
@@ -25,6 +29,8 @@ class Environment():
             food = chosen.food_available
         else: food = self.standart_energy
         return food
+
+
 
 class Region():
     def __init__(self,x0:int,y0:int,w:int,h:int,given_energy: float) -> None:

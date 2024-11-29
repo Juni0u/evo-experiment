@@ -14,96 +14,101 @@ class EvoSim():
     def update(self,events, save_video):
         self.check_if_QUIT(events, save_video)
         self.step += 1
-        # if self.step%100:
-        #     self.create_plant_population(1) 
+        if self.step==self.max_steps/2:
+            self.simulation_grid.remove_rectangle_region(region_index=0)
+            self.simulation_grid.add_rectangle_region(int(self.parameter.resolution[0]/4),int(self.parameter.resolution[1]/4),int(self.parameter.resolution[0]/4),int(self.parameter.resolution[1]/4), self.parameter.sun_energy*0.5)
+            self.simulation_grid.add_rectangle_region(0,0,int(self.parameter.resolution[0]/4),int(self.parameter.resolution[1]/4), self.parameter.sun_energy*2)
+        if rd.random() <= 0.0001:
+            self.create_population_per_environment(2)
 
-        shuffled_plants = list(self.simulation.plants_occupy)
-        shuffled_fruits = list(self.simulation.fruits_occupy)
+        shuffled_plants = list(self.simulation_grid.plants_occupy)
+        shuffled_fruits = list(self.simulation_grid.fruits_occupy)
         rd.shuffle(shuffled_plants)
         rd.shuffle(shuffled_fruits)
 
         for x,y in shuffled_plants:
-            self.simulation = self.simulation.grid[x][y]["plant"].update(self.simulation)
+            self.simulation_grid = self.simulation_grid.grid[x][y]["plant"].update(self.simulation_grid)
 
         for x,y in shuffled_fruits:
-            self.simulation = self.simulation.grid[x][y]["fruit"].update(self.simulation)
+            self.simulation_grid = self.simulation_grid.grid[x][y]["fruit"].update(self.simulation_grid)
 
-       # self.simulation.save_grid_state(address=self.grid_folder,step=self.step)
+       # self.simulation_grid.save_grid_state(address=self.grid_folder,step=self.step)
 
     def before_draw(self):
         self.canvas.fill((0, 0, 0)) 
 
     def draw(self):        
-            self.before_draw()
+            # for x,y in self.simulation_grid.fruits_occupy:
+            #     self.canvas = self.simulation_grid.grid[x][y]["fruit"].draw(self.canvas)
 
-            # for x,y in self.simulation.fruits_occupy:
-            #      self.canvas = self.simulation.grid[x][y]["fruit"].draw(self.canvas)
-
-            for x,y in self.simulation.plants_occupy:
-                self.canvas = self.simulation.grid[x][y]["plant"].draw(self.canvas)
+            for x,y in self.simulation_grid.plants_occupy:
+                self.canvas = self.simulation_grid.grid[x][y]["plant"].draw(self.canvas)
 
             font = pygame.font.Font(None,16)
             step_text = font.render(f"{self.step}",True, (255,0,255))
-            n_plants = font.render(f"{len(self.simulation.plants_occupy)}", True, (255,0,255))
-            n_fruits = font.render(f"{len(self.simulation.fruits_occupy)}", True, (255,0,255))
+            n_plants = font.render(f"{len(self.simulation_grid.plants_occupy)}", True, (255,0,255))
+            n_fruits = font.render(f"{len(self.simulation_grid.fruits_occupy)}", True, (255,0,255))
 
             self.canvas.blit(step_text,(5,5))
             self.canvas.blit(n_plants,(5,25))
             self.canvas.blit(n_fruits,(5,45))
 
-
-
     def update_screen(self,scaled_canvas):
         self.screen.blit(scaled_canvas, (0, 0))  # Draw scaled canvas on the screen
         pygame.display.update() 
 
-    def start_game(self,max_steps:int=1000, render:bool=False, save_video:bool=True) -> None:
+    def start_game_loop(self,max_steps:int=1000, frame_interval_to_save:int=5, render:bool=False, save_video:bool=True) -> None:
+        self.frame_interval_to_save = frame_interval_to_save
         self.create_experiment_folder()
         self.initialize_environments()
         #self.create_plant_population(150)
-        # self.create_population_per_environment(50)
-        self.create_population_per_environment_per_brain_zone(50)
+        #self.create_population_per_environment(50)
+        self.create_population_per_environment_per_brain_zone(5)
+        self.max_steps = max_steps
 
         with tqdm(total=max_steps, desc="Progress", ncols=100) as progress_bar:
             while (not self.exit) and (self.step!=max_steps):
                 events = pygame.event.get()
                 self.update(events, save_video)
-                # self.before_draw()
-                if render or save_video: 
-                    self.draw()
-                    scaled_canvas = pygame.transform.scale(self.canvas, self.parameter.screen_size)
-                if render: self.update_screen(scaled_canvas)
-                if save_video: self.save_frame(scaled_canvas)
+                if self.step%self.frame_interval_to_save==0:
+                    self.before_draw()
+                    if render or save_video: 
+                        self.draw()
+                        scaled_canvas = pygame.transform.scale(self.canvas, self.parameter.screen_size)
+                    if render: self.update_screen(scaled_canvas)
+                    if save_video: self.save_frame(scaled_canvas)
+                self.simulation_grid.add_grid_step()
                 # if self.step%500: self.get_plants_brains()
                 progress_bar.update(1)
         if save_video: imageio.mimsave(f'{self.parameter.experiment_folder}/recording.mp4', self.frames)
+        self.simulation_grid.save_grid_state(self.parameter.experiment_folder)
         pygame.quit()
 
     def initialize_environments(self):
-        #up-left = 1.25*normal-food
-        self.simulation.add_rectangle_region(0,0,int(self.parameter.resolution[0]/2),int(self.parameter.resolution[1]/2), self.parameter.sun_energy*1.25)
+        #up-left = 1.5*normal-food
+        self.simulation_grid.add_rectangle_region(0,0,int(self.parameter.resolution[0]/2),int(self.parameter.resolution[1]/2), self.parameter.sun_energy*1.5)
         #up-right = 0.75*normal-food
-        self.simulation.add_rectangle_region(int(self.parameter.resolution[0]/2),0,int(self.parameter.resolution[0]/2),int(self.parameter.resolution[1]/2), self.parameter.sun_energy*0.75)
+        self.simulation_grid.add_rectangle_region(int(self.parameter.resolution[0]/2),0,int(self.parameter.resolution[0]/2),int(self.parameter.resolution[1]/2), self.parameter.sun_energy*0.75)
         #down-righ = 0.5*normal-food
-        self.simulation.add_rectangle_region(int(self.parameter.resolution[0]/2),int(self.parameter.resolution[1]/2),int(self.parameter.resolution[0]/2),int(self.parameter.resolution[1]/2), self.parameter.sun_energy*0.5)
+        self.simulation_grid.add_rectangle_region(int(self.parameter.resolution[0]/2),int(self.parameter.resolution[1]/2),int(self.parameter.resolution[0]/2),int(self.parameter.resolution[1]/2), self.parameter.sun_energy*0.5)
         #down-left = normal-food
-        self.simulation.add_rectangle_region(0,int(self.parameter.resolution[1]/2),int(self.parameter.resolution[0]/2),int(self.parameter.resolution[1]/2), self.parameter.sun_energy)
+        self.simulation_grid.add_rectangle_region(0,int(self.parameter.resolution[1]/2),int(self.parameter.resolution[0]/2),int(self.parameter.resolution[1]/2), self.parameter.sun_energy)
 
 
     def create_population_per_environment_per_brain_zone(self, qty_per_brain_zone_per_environment):
-        for region in self.simulation.environment.regions:
+        for region in self.simulation_grid.environment.regions:
             for _ in range(qty_per_brain_zone_per_environment):
                 for i in range(self.parameter.plant.brain_size_interval[0],self.parameter.plant.brain_size_interval[1]):
-                    self.simulation.add_plant(x=rd.randint(region.x+5,region.x+region.w-5),y=rd.randint(region.y+5,region.y+region.h-5),gene=[i])
+                    self.simulation_grid.add_plant(x=rd.randint(region.x+5,region.x+region.w-5),y=rd.randint(region.y+5,region.y+region.h-5),gene=[i])
 
     def create_population_per_environment(self,quantity_per_environment):
-        for region in self.simulation.environment.regions:
+        for region in self.simulation_grid.environment.regions:
             for _ in range(quantity_per_environment):
-                self.simulation.add_plant(x=rd.randint(region.x+5,region.x+region.w-5),y=rd.randint(region.y+5,region.y+region.h-5))
+                self.simulation_grid.add_plant(x=rd.randint(region.x+5,region.x+region.w-5),y=rd.randint(region.y+5,region.y+region.h-5))
 
     def create_plant_population(self, quantity):
         for _ in range(quantity):
-            self.simulation.add_plant(x=rd.randint(0,self.parameter.resolution[0]-5),y=rd.randint(0,self.parameter.resolution[1]-5))        
+            self.simulation_grid.add_plant(x=rd.randint(0,self.parameter.resolution[0]-5),y=rd.randint(0,self.parameter.resolution[1]-5))        
 
     def save_frame(self,scaled_canvas):
         frame = pygame.surfarray.array3d(scaled_canvas)
@@ -116,7 +121,7 @@ class EvoSim():
             - seed: {self.seed}
             - render: {self.render}
             - number of steps: {self.step}
-            - simulation duration: [tempo]
+            - simulation_grid duration: [tempo]
         """
         return output
 
@@ -129,7 +134,7 @@ class EvoSim():
         self.exit = False
         self.render = False
         self.step = 0
-        self.simulation = Grid(x_size=self.parameter.resolution[0],y_size=self.parameter.resolution[1])
+        self.simulation_grid = Grid(x_size=self.parameter.resolution[0],y_size=self.parameter.resolution[1])
 
     def pygame_config_initialization(self) -> None:
         pygame.init()
@@ -174,9 +179,9 @@ class EvoSim():
     #                 np.savetxt(file, matrix, fmt='%.5f', delimiter=' ')
     #                 file.write("\n")    
 
-def main(max_steps,render,save_video):
+def main(max_steps,frame_interval_to_save, render,save_video):
     sim = EvoSim()
-    sim.start_game(max_steps, render, save_video)
+    sim.start_game_loop(max_steps, frame_interval_to_save, render, save_video)
 
 if __name__ == "__main__":
-    main(max_steps=10000, render=True, save_video=False)
+    main(max_steps=1000, frame_interval_to_save=15, render=True, save_video=False)
