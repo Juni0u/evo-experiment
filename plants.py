@@ -38,11 +38,13 @@ class Plant():
     def update(self, simulation):
         self.age += 1
         self.update_death_prob()
-        self.metabolize()
         self.state_transition() # <- brain state and zone are updated in here
         if (self.energy <= 0) or (rd.random() < self.death_prob):
             simulation.remove_plant(self.x,self.y)
+            if self.energy > 0:
+                print(f"Age: {self.age}, Prob: {self.death_prob}")
             return simulation
+        self.metabolize()
         if "eat" in self.brain.current_brain_state:
             self.eat(simulation)
         elif "reproduce" in self.brain.current_brain_state:
@@ -78,16 +80,18 @@ class Plant():
 
         self.assign_brain_zone_to_energy_level()
         self.updates_brain_zone()
-        self.color = self.parameter.plant.colors[self.brain.transition_grid.shape[0]-1]
+        #self.color = self.parameter.plant.colors[self.brain.transition_grid.shape[0]-1]
         self.gene = [self.energy_capacity,self.metabolism,self.food_spawn_thresold,self.brain]        
 
-    def update_death_prob(self):
+    def update_death_prob(self) -> None:
         "Updates death probability."
-        cons = 1
-        unit_increment = (self.parameter.plant.max_death_prob/self.parameter.plant.age_max_death_prob)
-        self.death_prob += unit_increment*cons
+        # MAX AGE = MAX SIMULATION STEPS (MAX PROBABILITY OF DEATH)
+        if self.death_prob < self.parameter.plant.max_death_prob:
+            cons = 1
+            unit_increment = (self.parameter.plant.max_death_prob/self.parameter.plant.age_max_death_prob)
+            self.death_prob += unit_increment*rd.random()
 
-    def state_transition(self):
+    def state_transition(self) -> None:
         "Transitions state"
         self.updates_brain_zone()
         self.brain.state_transition()
@@ -151,7 +155,7 @@ class Fruit():
         self.energy = self.gene[2]
         self.rect = pygame.Rect(x,y,1,1) 
 
-    def __hash__(self) -> int:
+    def __hash__(self):
         return hash(self.id)
     
     def __eq__(self, value: "Plant") -> bool:

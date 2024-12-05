@@ -12,7 +12,6 @@ class Creature():
         self.vision_radius=1        
         self.state=self.parameter.creature.states[0]
         self.hunt_target= [999,999]
-        self.birth()
 
     def __str__(self) -> str:
         output = f"Creature {self.id}\n"

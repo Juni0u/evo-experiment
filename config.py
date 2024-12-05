@@ -12,6 +12,7 @@ class Parameters:
         self.screen_size = data["SCREEN_SIZE"]
         self.sun_energy = data["SUN_ENERGY"]
         self.experiment_folder=data["EXPERIMENT_FOLDER"]
+        self.max_simulation_steps=data["MAX_SIMULATION_STEPS"]
         self.plant = PlantParameters()
         self.creature = CreatureParameters()
 

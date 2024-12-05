@@ -14,12 +14,14 @@ class EvoSim():
     def update(self,events, save_video):
         self.check_if_QUIT(events, save_video)
         self.step += 1
-        if self.step==self.max_steps/2:
-            self.simulation_grid.remove_rectangle_region(region_index=0)
-            self.simulation_grid.add_rectangle_region(int(self.parameter.resolution[0]/4),int(self.parameter.resolution[1]/4),int(self.parameter.resolution[0]/4),int(self.parameter.resolution[1]/4), self.parameter.sun_energy*0.5)
-            self.simulation_grid.add_rectangle_region(0,0,int(self.parameter.resolution[0]/4),int(self.parameter.resolution[1]/4), self.parameter.sun_energy*2)
-        if rd.random() <= 0.0001:
-            self.create_population_per_environment(2)
+        # Changes environment
+        # if self.step==self.max_steps/2:
+        #     self.simulation_grid.remove_rectangle_region(region_index=0)
+        #     self.simulation_grid.add_rectangle_region(int(self.parameter.resolution[0]/4),int(self.parameter.resolution[1]/4),int(self.parameter.resolution[0]/4),int(self.parameter.resolution[1]/4), self.parameter.sun_energy*1.5)
+        #     self.simulation_grid.add_rectangle_region(0,0,int(self.parameter.resolution[0]/2),int(self.parameter.resolution[1]/4), self.parameter.sun_energy*0.5)
+        
+        if rd.random() <= 0.01: #Chance to spawn random plants in each environment
+            self.create_population_per_environment(5)
 
         shuffled_plants = list(self.simulation_grid.plants_occupy)
         shuffled_fruits = list(self.simulation_grid.fruits_occupy)
@@ -29,11 +31,11 @@ class EvoSim():
         for x,y in shuffled_plants:
             self.simulation_grid = self.simulation_grid.grid[x][y]["plant"].update(self.simulation_grid)
 
+
         for x,y in shuffled_fruits:
             self.simulation_grid = self.simulation_grid.grid[x][y]["fruit"].update(self.simulation_grid)
 
        # self.simulation_grid.save_grid_state(address=self.grid_folder,step=self.step)
-
     def before_draw(self):
         self.canvas.fill((0, 0, 0)) 
 
@@ -57,14 +59,16 @@ class EvoSim():
         self.screen.blit(scaled_canvas, (0, 0))  # Draw scaled canvas on the screen
         pygame.display.update() 
 
-    def start_game_loop(self,max_steps:int=1000, frame_interval_to_save:int=5, render:bool=False, save_video:bool=True) -> None:
+    def start_game_loop(self, max_steps=0, frame_interval_to_save:int=5, render:bool=False, save_video:bool=True) -> None:
+        if max_steps == 0:
+            max_steps = self.parameter.max_simulation_steps
         self.frame_interval_to_save = frame_interval_to_save
         self.create_experiment_folder()
         self.initialize_environments()
         #self.create_plant_population(150)
         #self.create_population_per_environment(50)
-        self.create_population_per_environment_per_brain_zone(5)
-        self.max_steps = max_steps
+        self.create_population_per_environment_per_brain_zone(30)
+        
 
         with tqdm(total=max_steps, desc="Progress", ncols=100) as progress_bar:
             while (not self.exit) and (self.step!=max_steps):
@@ -177,11 +181,12 @@ class EvoSim():
     #             file.write(f"{plant.age}\n")
     #             for matrix in plant.brain.transition_grid:
     #                 np.savetxt(file, matrix, fmt='%.5f', delimiter=' ')
-    #                 file.write("\n")    
+    #                 file.write("\n")   
 
 def main(max_steps,frame_interval_to_save, render,save_video):
     sim = EvoSim()
+    sim.parameter.plant.age_max_death_prob = sim.parameter.max_simulation_steps
     sim.start_game_loop(max_steps, frame_interval_to_save, render, save_video)
 
 if __name__ == "__main__":
-    main(max_steps=1000, frame_interval_to_save=15, render=True, save_video=False)
+    main(max_steps=0, frame_interval_to_save=10, render=True, save_video=False)
