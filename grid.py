@@ -2,7 +2,8 @@ from plants import Plant, Fruit
 #from creature import Creature
 import typing
 from environment import Environment, Region
-import uuid, pickle, random as rd
+import uuid, pickle, copy, io, random as rd
+from joblib import dump,load
 GRID_ELEMENTS = ("fruit","plant","creature") 
 
 class Grid():
@@ -18,8 +19,10 @@ class Grid():
         self.creatures_occupy = set()
         self.environment = Environment()
 
-    def add_grid_step(self):
-        self.all_grid_steps.append(self.grid.copy())
+    def add_grid_step(self):      
+        grid_copy = pickle.dumps(self.grid)
+        self.all_grid_steps.append(grid_copy)     
+        # self.all_grid_steps.append(copy.deepcopy(self.grid))
     
     def build_grid(self):
         # grid = {}
@@ -106,6 +109,9 @@ class Grid():
         self.fruits_occupy.discard((x,y))
 
     def save_grid_state(self, address):
+        for i,grid in enumerate(self.all_grid_steps):
+            self.all_grid_steps[i] = pickle.loads(grid)
+            print(f"\r Saving [{i}/{len(self.all_grid_steps)}] . . .", end="", flush=True)
         with open(f"{address}/{self.id}", "wb") as file:
             pickle.dump(self,file)
         

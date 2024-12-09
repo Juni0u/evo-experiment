@@ -3,10 +3,11 @@ from tqdm import tqdm
 # from plants import Plant, Fruit
 from grid import Grid
 from environment import Environment
-import pygame, time, datetime, os, imageio, random as rd, numpy as np
+import pygame, time, datetime, os, imageio, pickle, uuid,random as rd, numpy as np
 
 class EvoSim():
     def __init__(self) -> None:
+        self.id = f"simulation-{uuid.uuid4()}"
         self.config_initialization()
         self.pygame_config_initialization()
         self.var_initialization()
@@ -189,4 +190,4 @@ def main(max_steps,frame_interval_to_save, render,save_video):
     sim.start_game_loop(max_steps, frame_interval_to_save, render, save_video)
 
 if __name__ == "__main__":
-    main(max_steps=0, frame_interval_to_save=10, render=True, save_video=False)
+    main(max_steps=100, frame_interval_to_save=10, render=True, save_video=False)

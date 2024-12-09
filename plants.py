@@ -12,9 +12,9 @@ class Plant():
         gene -> [energy_capacity,metabolism,food_spawn_thresold,self.brain]
         if gene = [0] -> standard atributes with a random brain"""
         self.parameter = Parameters()
+        self.id = f"plant-{uuid.uuid4()}"
         self.x = x
         self.y = y
-        self.id = f"plant-{uuid.uuid4()}"
         self.color = self.parameter.plant.base_color      
         self.spawn_radius = self.parameter.plant.spawn_radius 
         self.death_prob = 0
@@ -41,8 +41,8 @@ class Plant():
         self.state_transition() # <- brain state and zone are updated in here
         if (self.energy <= 0) or (rd.random() < self.death_prob):
             simulation.remove_plant(self.x,self.y)
-            if self.energy > 0:
-                print(f"Age: {self.age}, Prob: {self.death_prob}")
+            # if self.energy > 0:
+            #     print(f"Age: {self.age}, Prob: {self.death_prob}")
             return simulation
         self.metabolize()
         if "eat" in self.brain.current_brain_state:
